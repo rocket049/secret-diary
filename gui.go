@@ -5,7 +5,9 @@ import (
 	"log"
 	"os"
 	"path"
+	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/therecipe/qt/gui"
@@ -31,23 +33,23 @@ var curDiary struct {
 	Modified  bool
 }
 
-var id int
-
-func getNewId() (res int) {
-	res = id
-	id++
-	return
-}
-
 func T(v string) string {
 	return gettext.T(v)
 }
 
 type myWindow struct {
+	app    *widgets.QApplication
 	window *widgets.QMainWindow
 	tree   *widgets.QTreeView
 	model  *gui.QStandardItemModel
 	editor *widgets.QTextEdit
+	user   string
+	key    []byte
+	db     *myDb
+}
+
+func (s *myWindow) getNewId() (res int) {
+	return s.db.NextId()
 }
 
 func (s *myWindow) setMenuBar() {
@@ -84,6 +86,7 @@ func (s *myWindow) setStatusBar(msg string) {
 }
 
 func (s *myWindow) Create(app *widgets.QApplication) {
+	s.app = app
 	s.window = widgets.NewQMainWindow(nil, core.Qt__Window)
 
 	s.window.SetWindowTitle(T("UserName"))
@@ -126,7 +129,16 @@ func (s *myWindow) Create(app *widgets.QApplication) {
 	app.SetApplicationVersion("0.0.1")
 
 	s.setEditorFuncs()
+	s.setTreeFuncs()
 
+	once := sync.Once{}
+	s.window.ConnectShowEvent(func(e *gui.QShowEvent) {
+		once.Do(s.login)
+	})
+
+	s.window.ConnectCloseEvent(func(e *gui.QCloseEvent) {
+		s.db.Close()
+	})
 	s.window.Show()
 }
 
@@ -135,7 +147,34 @@ func (s *myWindow) saveCurDiary() {
 		s.setStatusBar(T("No Diary Saved"))
 		return
 	}
-	fmt.Println("save", curDiary.Item.AccessibleText(), s.editor.ToHtml())
+	//fmt.Println("save", curDiary.Item.AccessibleText(), s.editor.ToHtml())
+	var first bool = false
+	if len(curDiary.Item.AccessibleText()) == 0 {
+		p := curDiary.Item.Parent()
+		pos := curDiary.Item.Index()
+		item := p.TakeChild(pos.Row(), pos.Column())
+		item.SetAccessibleText(fmt.Sprintf("%d", s.db.NextId()))
+		p.SetChild(pos.Row(), pos.Column(), item)
+		curDiary.Item = item
+		first = true
+	}
+
+	filename := curDiary.Item.AccessibleText() + ".dat"
+	id, err := strconv.Atoi(curDiary.Item.AccessibleText())
+	if err != nil {
+		s.setStatusBar(T("Error ID"))
+		return
+	}
+	vs := strings.SplitN(curDiary.Item.Text(), "-", 2)
+	title := vs[1]
+	fmt.Println(filename, title)
+	if first {
+		s.db.AddDiary(id, time.Now().Format("2006-01-02"), title, filename)
+	} else {
+		s.db.UpdateDiaryTitle(id, title)
+	}
+
+	encodeToFile(s.editor.ToHtml(), filename, s.key)
 	s.setStatusBar(T("Save Diary"))
 	curDiary.Modified = false
 }
@@ -149,10 +188,10 @@ func (s *myWindow) addDiary(yearMonth, day, title string) {
 		s.saveCurDiary()
 	}
 
-	month := s.addYearMonty(yearMonth)
+	month := s.addYearMonth(yearMonth)
 	diary := gui.NewQStandardItem2(fmt.Sprintf("%s-%s", day, title))
 	diary.SetEditable(false)
-	diary.SetAccessibleText(fmt.Sprintf("%d", getNewId()))
+	diary.SetAccessibleText("")
 
 	month.AppendRow2(diary)
 
@@ -167,7 +206,46 @@ func (s *myWindow) addDiary(yearMonth, day, title string) {
 	s.tree.Expand(month.Index())
 }
 
-func (s *myWindow) addYearMonty(yearMonth string) *gui.QStandardItem {
+func (s *myWindow) addYearMonthsFromDb() {
+	yms, err := s.db.GetYearMonths()
+	if err != nil {
+		return
+	}
+	for i := 0; i < len(yms); i++ {
+		s.addYearMonth(yms[i])
+	}
+
+	topidx := core.NewQModelIndex()
+	pidx := s.model.Parent(topidx)
+	for r := 0; r < s.model.RowCount(pidx); r++ {
+		c := 0
+		item := s.model.Item(r, c)
+
+		items, err := s.db.GetListFromYearMonth(item.Text())
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		for i := 0; i < len(items); i++ {
+			diary := gui.NewQStandardItem2(fmt.Sprintf("%s-%s", items[i].Day, items[i].Title))
+			diary.SetEditable(false)
+			diary.SetAccessibleText(strconv.Itoa(items[i].Id))
+			diary.SetAccessibleDescription("0")
+			diary.SetToolTip(T("Last Modified:") + items[i].MTime)
+
+			item.AppendRow2(diary)
+		}
+
+		item = s.model.TakeItem(r, c)
+		item.SetAccessibleText("1")
+		item.SetAccessibleDescription("1")
+		s.model.SetItem(r, c, item)
+
+	}
+	return
+}
+
+func (s *myWindow) addYearMonth(yearMonth string) *gui.QStandardItem {
 	idx := core.NewQModelIndex()
 	p := s.model.Parent(idx)
 	n := s.model.RowCount(p)
@@ -180,8 +258,42 @@ func (s *myWindow) addYearMonty(yearMonth string) *gui.QStandardItem {
 	item := gui.NewQStandardItem2(yearMonth)
 	item.SetColumnCount(1)
 	item.SetEditable(false)
+	item.SetAccessibleText("")
+
 	s.model.AppendRow2(item)
+
 	return item
+}
+
+func (s *myWindow) setTreeFuncs() {
+
+	s.tree.SetSelectionMode(widgets.QAbstractItemView__SingleSelection)
+
+	s.tree.ConnectActivated(func(idx *core.QModelIndex) {
+		fmt.Println(idx.Row(), idx.Column())
+		p := idx.InternalPointer()
+		item := gui.NewQStandardItemFromPointer(p)
+		diary := item.Child(idx.Row(), idx.Column())
+
+		if diary.AccessibleDescription() == "0" {
+			filename := diary.AccessibleText() + ".dat"
+			txt, err := decodeFromFile(filename, s.key)
+			if err != nil {
+				log.Println(err)
+			} else {
+				if curDiary.Item != nil {
+					s.saveCurDiary()
+				}
+				curDiary.Item = diary
+				curDiary.Modified = false
+				curDiary.YearMonth = item.Text()
+				vs := strings.SplitN(diary.Text(), "-", 2)
+				curDiary.Day = vs[0]
+				s.editor.SetHtml(txt)
+			}
+		}
+
+	})
 }
 
 func (s *myWindow) setTitle(v string) {
@@ -227,6 +339,91 @@ func (s *myWindow) setEditorFuncs() {
 			p.SetChild(pos.Row(), pos.Column(), curDiary.Item)
 		}
 	})
+}
+
+func (s *myWindow) login() {
+	dlg := widgets.NewQDialog(s.window, core.Qt__Dialog)
+	dlg.SetWindowTitle(T("Login"))
+
+	grid := widgets.NewQGridLayout(dlg)
+
+	name := widgets.NewQLabel2(T("Name:"), dlg, core.Qt__Widget)
+	grid.AddWidget(name, 0, 0, 0)
+
+	nameInput := widgets.NewQLineEdit(dlg)
+	grid.AddWidget(nameInput, 0, 1, 0)
+
+	pwd := widgets.NewQLabel2(T("Password:"), dlg, core.Qt__Widget)
+	grid.AddWidget(pwd, 1, 0, 0)
+
+	pwdInput := widgets.NewQLineEdit(dlg)
+	pwdInput.SetEchoMode(widgets.QLineEdit__Password)
+	grid.AddWidget(pwdInput, 1, 1, 0)
+
+	btb := widgets.NewQGridLayout(nil)
+
+	okBtn := widgets.NewQPushButton2(T("OK"), dlg)
+	btb.AddWidget(okBtn, 0, 0, 0)
+
+	regBtn := widgets.NewQPushButton2(T("Register"), dlg)
+	btb.AddWidget(regBtn, 0, 1, 0)
+
+	cancelBtn := widgets.NewQPushButton2(T("Cancel"), dlg)
+	btb.AddWidget(cancelBtn, 0, 2, 0)
+
+	grid.AddLayout2(btb, 2, 0, 1, 2, 0)
+
+	dlg.SetLayout(grid)
+
+	dlg.SetModal(true)
+
+	okBtn.ConnectClicked(func(b bool) {
+		var err error
+		s.db, err = getMyDb(nameInput.Text())
+		if err != nil {
+			panic(err)
+		}
+		s.key, err = s.db.GetRealKey(pwdInput.Text())
+		if err != nil {
+			panic(err)
+		}
+
+		dlg.Hide()
+
+	})
+
+	regBtn.ConnectClicked(func(b bool) {
+
+		err := createUserDb(nameInput.Text(), pwdInput.Text())
+		if err != nil {
+			panic(err)
+		}
+		s.db, err = getMyDb(nameInput.Text())
+		if err != nil {
+			panic(err)
+		}
+		s.key, err = s.db.GetRealKey(pwdInput.Text())
+		if err != nil {
+			panic(err)
+		}
+
+		dlg.Hide()
+
+	})
+
+	cancelBtn.ConnectClicked(func(b bool) {
+		dlg.Destroy(true, true)
+		s.window.Destroy(true, true)
+		s.app.Quit()
+	})
+
+	dlg.ConnectHideEvent(func(e *gui.QHideEvent) {
+		log.Println("load list")
+		s.addYearMonthsFromDb()
+		dlg.Destroy(true, true)
+	})
+
+	dlg.Show()
 }
 
 func main() {
