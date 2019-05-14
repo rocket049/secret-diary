@@ -328,6 +328,11 @@ func (s *myWindow) setTreeFuncs() {
 		}
 
 	})
+	s.tree.ConnectMouseReleaseEvent(func(e *gui.QMouseEvent) {
+		fmt.Println(e.Button())
+		idx := s.tree.IndexAt(e.Pos())
+		fmt.Println(s.model.ItemFromIndex(idx).Text())
+	})
 }
 
 func (s *myWindow) setTitle(v string) {
