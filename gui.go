@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"path"
@@ -168,7 +169,7 @@ func (s *myWindow) saveCurDiary() {
 	}
 	vs := strings.SplitN(curDiary.Item.Text(), "-", 2)
 	title := vs[1]
-	fmt.Println(filename, title)
+	//fmt.Println(filename, title)
 	if first {
 		s.db.AddDiary(id, time.Now().Format("2006-01-02"), title, filename)
 	} else {
@@ -176,7 +177,7 @@ func (s *myWindow) saveCurDiary() {
 	}
 
 	encodeToFile(s.editor.ToHtml(), filename, s.key)
-	s.setStatusBar(T("Save Diary"))
+	s.setStatusBar(T("Save Diary") + fmt.Sprintf(" %s(%s)", title, filename))
 	curDiary.Modified = false
 }
 
@@ -289,49 +290,80 @@ func (s *myWindow) addYearMonth(yearMonth string) *gui.QStandardItem {
 	return item
 }
 
+func (s *myWindow) selectDiary(idx *core.QModelIndex) {
+	diary := s.model.ItemFromIndex(idx)
+	if diary.AccessibleDescription() == "0" {
+		filename := diary.AccessibleText() + ".dat"
+		txt, err := decodeFromFile(filename, s.key)
+		if err != nil {
+			log.Println(err)
+			if curDiary.Item != nil {
+				s.saveCurDiary()
+			}
+			curDiary.Item = diary
+			curDiary.Modified = false
+			curDiary.YearMonth = diary.Parent().Text()
+			vs := strings.SplitN(diary.Text(), "-", 2)
+			curDiary.Day = vs[0]
+		} else {
+			if curDiary.Item != nil {
+				s.saveCurDiary()
+			}
+			curDiary.Item = diary
+			curDiary.Modified = false
+			curDiary.YearMonth = diary.Parent().Text()
+			vs := strings.SplitN(diary.Text(), "-", 2)
+			curDiary.Day = vs[0]
+			//s.editor.SetHtml(txt)
+			s.editor.Document().SetHtml(txt)
+			s.editor.Document().SetModified(false)
+		}
+	}
+}
+
+func (s *myWindow) diaryPopup(idx *core.QModelIndex, e *gui.QMouseEvent) {
+	//fmt.Println("popup")
+	diary := s.model.ItemFromIndex(idx)
+	menu := widgets.NewQMenu(s.tree)
+	item := menu.AddAction(T("Delete"))
+	item.ConnectTriggered(func(checked bool) {
+		dlg := widgets.NewQMessageBox(s.window)
+		dlg.SetWindowTitle(T("Confirm"))
+		dlg.SetText(T("Are you sure?"))
+		dlg.SetIcon(widgets.QMessageBox__Question)
+		dlg.SetStandardButtons(widgets.QMessageBox__Yes | widgets.QMessageBox__Cancel)
+		ret := dlg.Exec()
+		if ret == int(widgets.QMessageBox__Yes) {
+			id := diary.AccessibleText()
+			if len(id) > 0 {
+				s.db.RemoveDiary(id)
+			}
+			curDiary.Item = nil
+			curDiary.Modified = false
+			p := diary.Parent()
+			p.RemoveRow(diary.Row())
+
+		}
+
+	})
+
+	menu.Popup(e.GlobalPos(), nil)
+}
+
 func (s *myWindow) setTreeFuncs() {
 
 	s.tree.SetSelectionMode(widgets.QAbstractItemView__SingleSelection)
 
-	s.tree.ConnectActivated(func(idx *core.QModelIndex) {
-		fmt.Println(idx.Row(), idx.Column())
-		p := idx.InternalPointer()
-		item := gui.NewQStandardItemFromPointer(p)
-		diary := item.Child(idx.Row(), idx.Column())
-
-		if diary.AccessibleDescription() == "0" {
-			filename := diary.AccessibleText() + ".dat"
-			txt, err := decodeFromFile(filename, s.key)
-			if err != nil {
-				log.Println(err)
-				if curDiary.Item != nil {
-					s.saveCurDiary()
-				}
-				curDiary.Item = diary
-				curDiary.Modified = false
-				curDiary.YearMonth = item.Text()
-				vs := strings.SplitN(diary.Text(), "-", 2)
-				curDiary.Day = vs[0]
-			} else {
-				if curDiary.Item != nil {
-					s.saveCurDiary()
-				}
-				curDiary.Item = diary
-				curDiary.Modified = false
-				curDiary.YearMonth = item.Text()
-				vs := strings.SplitN(diary.Text(), "-", 2)
-				curDiary.Day = vs[0]
-				//s.editor.SetHtml(txt)
-				s.editor.Document().SetHtml(txt)
-				s.editor.Document().SetModified(false)
-			}
-		}
-
-	})
 	s.tree.ConnectMouseReleaseEvent(func(e *gui.QMouseEvent) {
-		fmt.Println(e.Button())
+		//fmt.Println(e.Button())
 		idx := s.tree.IndexAt(e.Pos())
-		fmt.Println(s.model.ItemFromIndex(idx).Text())
+		//fmt.Println(s.model.ItemFromIndex(idx).Text())
+		switch e.Button() {
+		case core.Qt__LeftButton:
+			s.selectDiary(idx)
+		case core.Qt__RightButton:
+			s.diaryPopup(idx, e)
+		}
 	})
 }
 
@@ -380,6 +412,21 @@ func (s *myWindow) setEditorFuncs() {
 	})
 }
 
+func (s *myWindow) lastUser() string {
+	home, _ := os.UserHomeDir()
+	v, err := ioutil.ReadFile(path.Join(home, ".sdiary", "user.txt"))
+	if err != nil {
+		return ""
+	}
+	return string(v)
+}
+
+func (s *myWindow) saveLastUser(name string) {
+	home, _ := os.UserHomeDir()
+	path1 := path.Join(home, ".sdiary", "user.txt")
+	ioutil.WriteFile(path1, []byte(name), 0644)
+}
+
 func (s *myWindow) login() {
 	dlg := widgets.NewQDialog(s.window, core.Qt__Dialog)
 	dlg.SetWindowTitle(T("Login"))
@@ -390,6 +437,7 @@ func (s *myWindow) login() {
 	grid.AddWidget(name, 0, 0, 0)
 
 	nameInput := widgets.NewQLineEdit(dlg)
+	nameInput.SetText(s.lastUser())
 	grid.AddWidget(nameInput, 0, 1, 0)
 
 	pwd := widgets.NewQLabel2(T("Password:"), dlg, core.Qt__Widget)
@@ -430,7 +478,7 @@ func (s *myWindow) login() {
 		if err != nil {
 			panic(err)
 		}
-
+		s.saveLastUser(nameInput.Text())
 		s.window.SetWindowTitle(nameInput.Text())
 		dlg.Hide()
 
@@ -452,7 +500,7 @@ func (s *myWindow) login() {
 		if err != nil {
 			panic(err)
 		}
-
+		s.saveLastUser(nameInput.Text())
 		s.window.SetWindowTitle(nameInput.Text())
 		dlg.Hide()
 
@@ -465,7 +513,7 @@ func (s *myWindow) login() {
 	})
 
 	dlg.ConnectHideEvent(func(e *gui.QHideEvent) {
-		log.Println("load list")
+		//log.Println("load list")
 		s.addYearMonthsFromDb()
 		dlg.Destroy(true, true)
 	})

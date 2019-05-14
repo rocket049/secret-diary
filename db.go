@@ -209,3 +209,17 @@ func (s *myDb) GetListFromYearMonth(ym string) ([]diaryItem, error) {
 	}
 	return res, nil
 }
+
+func (s *myDb) RemoveDiary(id string) error {
+	row := s.db.QueryRow("select filename from diaries where id=?;", id)
+	var filename string
+	err := row.Scan(&filename)
+	if err != nil {
+		return err
+	}
+	_, err = s.db.Exec("delete from diaries where id=?;", id)
+	if err != nil {
+		return err
+	}
+	return os.Remove(path.Join(dataDir, filename))
+}
