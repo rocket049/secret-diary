@@ -1,3 +1,5 @@
 secret-diary
 /deploy
-
+moc*
+rcc*
+/testdata

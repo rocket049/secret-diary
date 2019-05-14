@@ -56,6 +56,23 @@ func getRealKeyString(pwd string) (string, error) {
 	return fmt.Sprintf("%x", buf.Bytes()), nil
 }
 
+func newRealKeyString(rkey []byte, pwd string) (string, error) {
+	p1 := getSha4(pwd)
+	aesBlock, err := aes.NewCipher(p1)
+	if err != nil {
+		return "", err
+	}
+	iv := make([]byte, aes.BlockSize)
+	io.ReadFull(rand.Reader, iv)
+
+	aesEncoder := cipher.NewCTR(aesBlock, iv)
+	var res = make([]byte, 32)
+	aesEncoder.XORKeyStream(res, rkey)
+	buf := bytes.NewBuffer(iv)
+	buf.Write(res)
+	return fmt.Sprintf("%x", buf.Bytes()), nil
+}
+
 func decodeRealKey(key, data, iv []byte) ([]byte, error) {
 	aesBlock, err := aes.NewCipher(key)
 	if err != nil {

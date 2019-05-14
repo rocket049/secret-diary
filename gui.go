@@ -46,6 +46,7 @@ type myWindow struct {
 	user   string
 	key    []byte
 	db     *myDb
+	bridge *QmlBridge
 }
 
 func (s *myWindow) getNewId() (res int) {
@@ -143,7 +144,7 @@ func (s *myWindow) Create(app *widgets.QApplication) {
 }
 
 func (s *myWindow) saveCurDiary() {
-	if !curDiary.Modified {
+	if !curDiary.Modified || s.editor.Document().IsModified() == false {
 		s.setStatusBar(T("No Diary Saved"))
 		return
 	}
@@ -193,7 +194,9 @@ func (s *myWindow) addDiary(yearMonth, day, title string) {
 	diary.SetEditable(false)
 	diary.SetAccessibleText("")
 
-	month.AppendRow2(diary)
+	//month.AppendRow2(diary)
+	month.InsertRow2(0, diary)
+	s.tree.SetCurrentIndex(diary.Index())
 
 	curDiary.Item = diary
 	curDiary.Day = day
@@ -207,41 +210,62 @@ func (s *myWindow) addDiary(yearMonth, day, title string) {
 }
 
 func (s *myWindow) addYearMonthsFromDb() {
-	yms, err := s.db.GetYearMonths()
-	if err != nil {
-		return
-	}
-	for i := 0; i < len(yms); i++ {
-		s.addYearMonth(yms[i])
-	}
+	s.setStatusBar(T("Loading Diary List..."))
 
-	topidx := core.NewQModelIndex()
-	pidx := s.model.Parent(topidx)
-	for r := 0; r < s.model.RowCount(pidx); r++ {
-		c := 0
+	s.bridge = NewQmlBridge(s.window)
+	var wg sync.WaitGroup
+	s.bridge.ConnectAddYearMonth(func(ym string) {
+		s.addYearMonth(ym)
+		wg.Done()
+	})
+	s.bridge.ConnectAddDiary(func(id, day, title, mtime string, r, c int) {
 		item := s.model.Item(r, c)
+		diary := gui.NewQStandardItem2(fmt.Sprintf("%s-%s", day, title))
+		diary.SetEditable(false)
+		diary.SetAccessibleText(id)
+		diary.SetAccessibleDescription("0")
+		diary.SetToolTip(T("Last Modified:") + mtime)
 
-		items, err := s.db.GetListFromYearMonth(item.Text())
-		if err != nil {
-			log.Println(err)
-			return
-		}
-		for i := 0; i < len(items); i++ {
-			diary := gui.NewQStandardItem2(fmt.Sprintf("%s-%s", items[i].Day, items[i].Title))
-			diary.SetEditable(false)
-			diary.SetAccessibleText(strconv.Itoa(items[i].Id))
-			diary.SetAccessibleDescription("0")
-			diary.SetToolTip(T("Last Modified:") + items[i].MTime)
-
-			item.AppendRow2(diary)
-		}
-
-		item = s.model.TakeItem(r, c)
+		item.AppendRow2(diary)
+	})
+	s.bridge.ConnectSetMonthFlag(func(r, c int) {
+		item := s.model.TakeItem(r, c)
 		item.SetAccessibleText("1")
 		item.SetAccessibleDescription("1")
 		s.model.SetItem(r, c, item)
+		if r < 2 {
+			s.tree.Expand(item.Index())
+		}
+	})
+	go func() {
+		yms, err := s.db.GetYearMonths()
+		if err != nil {
+			return
+		}
+		for i := 0; i < len(yms); i++ {
+			wg.Add(1)
+			s.bridge.AddYearMonth(yms[i])
+		}
+		wg.Wait()
+		topidx := core.NewQModelIndex()
+		pidx := s.model.Parent(topidx)
+		for r := 0; r < s.model.RowCount(pidx); r++ {
+			c := 0
+			item := s.model.Item(r, c)
+			items, err := s.db.GetListFromYearMonth(item.Text())
+			if err != nil {
+				log.Println(err)
+				return
+			}
+			for i := 0; i < len(items); i++ {
+				s.bridge.AddDiary(strconv.Itoa(items[i].Id), items[i].Day, items[i].Title, items[i].MTime, r, c)
+			}
 
-	}
+			s.bridge.SetMonthFlag(r, c)
+
+		}
+	}()
+
 	return
 }
 
@@ -280,6 +304,14 @@ func (s *myWindow) setTreeFuncs() {
 			txt, err := decodeFromFile(filename, s.key)
 			if err != nil {
 				log.Println(err)
+				if curDiary.Item != nil {
+					s.saveCurDiary()
+				}
+				curDiary.Item = diary
+				curDiary.Modified = false
+				curDiary.YearMonth = item.Text()
+				vs := strings.SplitN(diary.Text(), "-", 2)
+				curDiary.Day = vs[0]
 			} else {
 				if curDiary.Item != nil {
 					s.saveCurDiary()
@@ -289,7 +321,9 @@ func (s *myWindow) setTreeFuncs() {
 				curDiary.YearMonth = item.Text()
 				vs := strings.SplitN(diary.Text(), "-", 2)
 				curDiary.Day = vs[0]
-				s.editor.SetHtml(txt)
+				//s.editor.SetHtml(txt)
+				s.editor.Document().SetHtml(txt)
+				s.editor.Document().SetModified(false)
 			}
 		}
 
@@ -358,6 +392,7 @@ func (s *myWindow) login() {
 
 	pwdInput := widgets.NewQLineEdit(dlg)
 	pwdInput.SetEchoMode(widgets.QLineEdit__Password)
+	pwdInput.SetPlaceholderText(T("Length Must >= 4"))
 	grid.AddWidget(pwdInput, 1, 1, 0)
 
 	btb := widgets.NewQGridLayout(nil)
@@ -379,6 +414,9 @@ func (s *myWindow) login() {
 
 	okBtn.ConnectClicked(func(b bool) {
 		var err error
+		if len(pwdInput.Text()) < 3 || len(nameInput.Text()) < 1 {
+			return
+		}
 		s.db, err = getMyDb(nameInput.Text())
 		if err != nil {
 			panic(err)
@@ -388,12 +426,15 @@ func (s *myWindow) login() {
 			panic(err)
 		}
 
+		s.window.SetWindowTitle(nameInput.Text())
 		dlg.Hide()
 
 	})
 
 	regBtn.ConnectClicked(func(b bool) {
-
+		if len(pwdInput.Text()) < 3 || len(nameInput.Text()) < 1 {
+			return
+		}
 		err := createUserDb(nameInput.Text(), pwdInput.Text())
 		if err != nil {
 			panic(err)
@@ -407,6 +448,7 @@ func (s *myWindow) login() {
 			panic(err)
 		}
 
+		s.window.SetWindowTitle(nameInput.Text())
 		dlg.Hide()
 
 	})

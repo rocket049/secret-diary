@@ -24,17 +24,17 @@ func createUserDb(name string, pwd string) error {
 	userDb := path.Join(dataDir, "diary.db")
 	if _, err := os.Stat(userDb); err == nil {
 		//exists
-		return nil
+		return errors.New("Already exists.")
 	}
 	db, err := sql.Open("sqlite3", userDb)
 	if err != nil {
 		return err
 	}
 	defer db.Close()
-	sqls := []string{"create table user (id INTEGER UNIQUE,cdata text,sha40 TEXT not null,realkey text not null,mtime text);",
-		"create table diaries (id integer,cdate text,title text,filename text,mtime text);",
-		"create index idx1 on diaries(cdate);",
-		"create index idx2 on diaries(title);"}
+	sqls := []string{"create table user (id integer unique,cdata text,sha40 TEXT not null,realkey text not null,mtime text);",
+		"create table diaries (id integer unique,cdate text,title text,filename text,mtime text);"}
+	//"create index idx1 on diaries(cdate);",
+	//"create index idx2 on diaries(title);"}
 	for i := 0; i < len(sqls); i++ {
 		_, err = db.Exec(sqls[i])
 		if err != nil {
@@ -99,6 +99,36 @@ func (s *myDb) GetRealKey(pwd string) ([]byte, error) {
 	return decodeRealKey(ukey, data, iv)
 }
 
+func (s *myDb) UpdateRealKeyAndSha40(pwdOld, pwdNew string) error {
+	sha40 := getSha40String(pwdOld)
+	row := s.db.QueryRow("select realkey from user where sha40=?;", sha40)
+	var realKey string
+	err := row.Scan(&realKey)
+	if err != nil {
+		return err
+	}
+	key, err := hex.DecodeString(realKey)
+	if err != nil {
+		return err
+	}
+	if len(key) != 32+aes.BlockSize {
+		return errors.New("Data invalid.")
+	}
+	iv := key[:aes.BlockSize]
+	data := key[32:]
+	ukey := getSha4(pwdOld)
+	rkey, err := decodeRealKey(ukey, data, iv)
+	if err != nil {
+		return err
+	}
+	rkeyStr, err := newRealKeyString(rkey, pwdNew)
+	if err != nil {
+		return err
+	}
+	_, err = s.db.Exec("update user set realkey=?,sha40=? where id=1;", rkeyStr, getSha40String(pwdNew))
+	return err
+}
+
 func (s *myDb) AddDiary(id int, cdate, title, filename string) error {
 	_, err := s.db.Exec("insert into diaries(id,cdate,title,filename,mtime) values(?,?,?,?,?);",
 		id, cdate, title, filename, time.Now().Format("2006-01-02 15:04:05"))
@@ -144,7 +174,7 @@ func (s *myDb) NextId() int {
 }
 
 func (s *myDb) GetYearMonths() ([]string, error) {
-	rows, err := s.db.Query("select distinct substr(cdate,0,8) from diaries;")
+	rows, err := s.db.Query("select distinct substr(cdate,0,8) from diaries order by substr(cdate,0,8) desc;")
 	if err != nil {
 		return nil, err
 	}
@@ -166,7 +196,7 @@ type diaryItem struct {
 }
 
 func (s *myDb) GetListFromYearMonth(ym string) ([]diaryItem, error) {
-	rows, err := s.db.Query("select id,substr(cdate,9,11),title,mtime from diaries where substr(cdate,0,8)=?;", ym)
+	rows, err := s.db.Query("select id,substr(cdate,9,11),title,mtime from diaries where substr(cdate,0,8)=? order by substr(cdate,9,11) desc;", ym)
 	if err != nil {
 		return nil, err
 	}
