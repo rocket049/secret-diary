@@ -32,9 +32,9 @@ func createUserDb(name string, pwd string) error {
 	}
 	defer db.Close()
 	sqls := []string{"create table user (id integer unique,cdata text,sha40 TEXT not null,realkey text not null,mtime text);",
-		"create table diaries (id integer unique,cdate text,title text,filename text,mtime text);"}
-	//"create index idx1 on diaries(cdate);",
-	//"create index idx2 on diaries(title);"}
+		"create table diaries (id integer unique,cdate text,title text,filename text,mtime text);",
+		"create index idx1 on diaries(cdate);"}
+	//"create table months (ym text);"}
 	for i := 0; i < len(sqls); i++ {
 		_, err = db.Exec(sqls[i])
 		if err != nil {
@@ -94,7 +94,7 @@ func (s *myDb) GetRealKey(pwd string) ([]byte, error) {
 		return nil, errors.New("Data invalid.")
 	}
 	iv := key[:aes.BlockSize]
-	data := key[32:]
+	data := key[aes.BlockSize:]
 	ukey := getSha4(pwd)
 	return decodeRealKey(ukey, data, iv)
 }
@@ -115,7 +115,7 @@ func (s *myDb) UpdateRealKeyAndSha40(pwdOld, pwdNew string) error {
 		return errors.New("Data invalid.")
 	}
 	iv := key[:aes.BlockSize]
-	data := key[32:]
+	data := key[aes.BlockSize:]
 	ukey := getSha4(pwdOld)
 	rkey, err := decodeRealKey(ukey, data, iv)
 	if err != nil {

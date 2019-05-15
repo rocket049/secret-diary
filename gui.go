@@ -39,15 +39,18 @@ func T(v string) string {
 }
 
 type myWindow struct {
-	app    *widgets.QApplication
-	window *widgets.QMainWindow
-	tree   *widgets.QTreeView
-	model  *gui.QStandardItemModel
-	editor *widgets.QTextEdit
-	user   string
-	key    []byte
-	db     *myDb
-	bridge *QmlBridge
+	app                 *widgets.QApplication
+	window              *widgets.QMainWindow
+	tree                *widgets.QTreeView
+	model               *gui.QStandardItemModel
+	editor              *widgets.QTextEdit
+	actionTextBold      *widgets.QAction
+	actionTextUnderline *widgets.QAction
+	actionTextItalic    *widgets.QAction
+	user                string
+	key                 []byte
+	db                  *myDb
+	bridge              *QmlBridge
 }
 
 func (s *myWindow) getNewId() (res int) {
@@ -62,10 +65,20 @@ func (s *myWindow) setMenuBar() {
 		log.Println("click open", b)
 		s.setStatusBar("click open")
 	})
+
+	ren := menu.AddAction(T("Rename"))
+	ren.ConnectTriggered(func(b bool) {
+		s.rename()
+	})
+
+	pwdNew := menu.AddAction(T("ModifyPassword"))
+	pwdNew.ConnectTriggered(func(b bool) {
+		s.updatePwd()
+	})
 }
 
 func (s *myWindow) setToolBar() {
-	bar := widgets.NewQToolBar("toolbar 1", nil)
+	bar := widgets.NewQToolBar("File", nil)
 	act1 := bar.AddAction(T("New"))
 	act1.ConnectTriggered(func(b bool) {
 		s.setStatusBar(T("New Diary"))
@@ -78,6 +91,71 @@ func (s *myWindow) setToolBar() {
 
 		s.saveCurDiary()
 	})
+
+	s.window.AddToolBar2(bar)
+
+	bar = widgets.NewQToolBar("Format", nil)
+
+	head1 := bar.AddAction("H1")
+	head1.ConnectTriggered(func(b bool) {
+		s.setHeader(1)
+	})
+	head2 := bar.AddAction("H2")
+	head2.ConnectTriggered(func(b bool) {
+		s.setHeader(2)
+	})
+	head3 := bar.AddAction("H3")
+	head3.ConnectTriggered(func(b bool) {
+		s.setHeader(3)
+	})
+
+	standard := bar.AddAction(T("Standard"))
+	standard.ConnectTriggered(func(b bool) {
+		var cfmt = gui.NewQTextCharFormat()
+		cfmt.SetFontPointSize(14)
+		cfmt.SetForeground(gui.NewQBrush3(gui.NewQColor2(core.Qt__black), core.Qt__SolidPattern))
+		s.mergeFormatOnLineOrSelection(cfmt)
+	})
+
+	s.actionTextBold = bar.AddAction("B")
+	s.actionTextBold.SetCheckable(true)
+	s.actionTextBold.ConnectTriggered(func(checked bool) {
+		s.textBold()
+	})
+
+	s.actionTextItalic = bar.AddAction("I")
+	s.actionTextItalic.SetCheckable(true)
+	s.actionTextItalic.ConnectTriggered(func(checked bool) {
+		s.textItalic()
+	})
+
+	s.actionTextUnderline = bar.AddAction("U")
+	s.actionTextUnderline.SetCheckable(true)
+	s.actionTextUnderline.ConnectTriggered(func(checked bool) {
+		s.textUnderline()
+	})
+
+	var pix = gui.NewQPixmap3(16, 16)
+	pix.Fill(gui.NewQColor2(core.Qt__red))
+	actionTextColor := bar.AddAction2(gui.NewQIcon2(pix), "&Color...")
+	actionTextColor.ConnectTriggered(func(checked bool) {
+		s.textColor()
+	})
+
+	comboStyle := widgets.NewQComboBox(bar)
+	bar.AddWidget(comboStyle)
+	comboStyle.AddItems([]string{
+		"Standard",
+		"List (Disc)",
+		"List (Circle)",
+		"List (Square)",
+		"List (Decimal)",
+		"List (Alpha lower)",
+		"List (Alpha upper)",
+		"List (Roman lower)",
+		"List (Roman upper)",
+	})
+	comboStyle.ConnectActivated(s.textStyle)
 
 	s.window.AddToolBar2(bar)
 }
@@ -103,6 +181,7 @@ func (s *myWindow) Create(app *widgets.QApplication) {
 	s.tree = widgets.NewQTreeView(s.window)
 	s.tree.SetFixedWidth(200)
 	s.tree.SetSizePolicy2(widgets.QSizePolicy__Fixed, widgets.QSizePolicy__Expanding)
+	s.tree.SetHorizontalScrollBarPolicy(core.Qt__ScrollBarAsNeeded)
 	s.tree.SetAutoScroll(true)
 	s.model = gui.NewQStandardItemModel2(0, 1, s.tree)
 	s.model.SetHorizontalHeaderLabels([]string{T("Diary List")})
@@ -194,6 +273,7 @@ func (s *myWindow) addDiary(yearMonth, day, title string) {
 	diary := gui.NewQStandardItem2(fmt.Sprintf("%s-%s", day, title))
 	diary.SetEditable(false)
 	diary.SetAccessibleText("")
+	diary.SetAccessibleDescription("0")
 
 	//month.AppendRow2(diary)
 	month.InsertRow2(0, diary)
@@ -234,6 +314,7 @@ func (s *myWindow) addYearMonthsFromDb() {
 		item.SetAccessibleText("1")
 		item.SetAccessibleDescription("1")
 		s.model.SetItem(r, c, item)
+		s.tree.ResizeColumnToContents(0)
 		if r < 2 {
 			s.tree.Expand(item.Index())
 		}
@@ -251,6 +332,9 @@ func (s *myWindow) addYearMonthsFromDb() {
 		topidx := core.NewQModelIndex()
 		pidx := s.model.Parent(topidx)
 		for r := 0; r < s.model.RowCount(pidx); r++ {
+			if r > 2 {
+				break
+			}
 			c := 0
 			item := s.model.Item(r, c)
 			items, err := s.db.GetListFromYearMonth(item.Text())
@@ -292,38 +376,45 @@ func (s *myWindow) addYearMonth(yearMonth string) *gui.QStandardItem {
 
 func (s *myWindow) selectDiary(idx *core.QModelIndex) {
 	diary := s.model.ItemFromIndex(idx)
-	if diary.AccessibleDescription() == "0" {
-		filename := diary.AccessibleText() + ".dat"
-		txt, err := decodeFromFile(filename, s.key)
-		if err != nil {
-			log.Println(err)
-			if curDiary.Item != nil {
-				s.saveCurDiary()
-			}
-			curDiary.Item = diary
-			curDiary.Modified = false
-			curDiary.YearMonth = diary.Parent().Text()
-			vs := strings.SplitN(diary.Text(), "-", 2)
-			curDiary.Day = vs[0]
-		} else {
-			if curDiary.Item != nil {
-				s.saveCurDiary()
-			}
-			curDiary.Item = diary
-			curDiary.Modified = false
-			curDiary.YearMonth = diary.Parent().Text()
-			vs := strings.SplitN(diary.Text(), "-", 2)
-			curDiary.Day = vs[0]
-			//s.editor.SetHtml(txt)
-			s.editor.Document().SetHtml(txt)
-			s.editor.Document().SetModified(false)
-		}
+	if diary.Pointer() == curDiary.Item.Pointer() {
+		return
 	}
+	filename := diary.AccessibleText() + ".dat"
+	txt, err := decodeFromFile(filename, s.key)
+	if err != nil {
+		log.Println(err)
+		if curDiary.Item != nil {
+			s.saveCurDiary()
+		}
+		curDiary.Item = diary
+		curDiary.Modified = false
+		curDiary.YearMonth = diary.Parent().Text()
+		vs := strings.Index(diary.Text(), "-")
+		curDiary.Day = diary.Text()[:vs]
+		s.setTitle(diary.Text()[vs+1:])
+		//fmt.Println(curDiary.Day)
+	} else {
+		if curDiary.Item != nil {
+			s.saveCurDiary()
+		}
+		curDiary.Item = diary
+		curDiary.Modified = false
+		curDiary.YearMonth = diary.Parent().Text()
+		vs := strings.Index(diary.Text(), "-")
+		curDiary.Day = diary.Text()[:vs]
+		//s.editor.SetHtml(txt)
+		s.editor.Document().SetHtml(txt)
+		s.editor.Document().SetModified(false)
+	}
+
 }
 
 func (s *myWindow) diaryPopup(idx *core.QModelIndex, e *gui.QMouseEvent) {
 	//fmt.Println("popup")
-	diary := s.model.ItemFromIndex(idx)
+	diary := s.model.ItemFromIndex(s.tree.CurrentIndex())
+	if diary.AccessibleDescription() != "0" {
+		return
+	}
 	menu := widgets.NewQMenu(s.tree)
 	item := menu.AddAction(T("Delete"))
 	item.ConnectTriggered(func(checked bool) {
@@ -350,6 +441,31 @@ func (s *myWindow) diaryPopup(idx *core.QModelIndex, e *gui.QMouseEvent) {
 	menu.Popup(e.GlobalPos(), nil)
 }
 
+func (s *myWindow) onSelectItem(idx *core.QModelIndex) {
+	item := s.model.ItemFromIndex(idx)
+	//fmt.Println("AD:", item.AccessibleDescription())
+	switch item.AccessibleDescription() {
+	case "0":
+		s.selectDiary(idx)
+	case "1":
+		return
+
+	default:
+		items, err := s.db.GetListFromYearMonth(item.Text())
+		r, c := idx.Row(), idx.Column()
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		for i := 0; i < len(items); i++ {
+			s.bridge.AddDiary(strconv.Itoa(items[i].Id), items[i].Day, items[i].Title, items[i].MTime, r, c)
+		}
+
+		s.bridge.SetMonthFlag(r, c)
+		s.tree.Expand(idx)
+	}
+}
+
 func (s *myWindow) setTreeFuncs() {
 
 	s.tree.SetSelectionMode(widgets.QAbstractItemView__SingleSelection)
@@ -358,39 +474,36 @@ func (s *myWindow) setTreeFuncs() {
 		//fmt.Println(e.Button())
 		idx := s.tree.IndexAt(e.Pos())
 		//fmt.Println(s.model.ItemFromIndex(idx).Text())
+		//s.tree.SetCurrentIndex(idx)
+
 		switch e.Button() {
 		case core.Qt__LeftButton:
-			s.selectDiary(idx)
+			s.onSelectItem(idx)
 		case core.Qt__RightButton:
 			s.diaryPopup(idx, e)
 		}
+
 	})
+
 }
 
 func (s *myWindow) setTitle(v string) {
-
-	//cursor.BeginEditBlock()
-	s.editor.MoveCursor(gui.QTextCursor__Start, gui.QTextCursor__MoveAnchor)
-	cursor := s.editor.TextCursor()
+	s.editor.SetText("")
 	var cfmt = gui.NewQTextCharFormat()
 	cfmt.SetFontPointSize(18)
 
 	cfmt.SetForeground(gui.NewQBrush3(gui.NewQColor2(core.Qt__blue), core.Qt__SolidPattern))
+	s.mergeFormatOnLineOrSelection(cfmt)
 
-	cursor.MergeBlockCharFormat(cfmt)
-
+	cursor := s.editor.TextCursor()
 	cursor.InsertText(v)
-
-	//cursor.EndEditBlock()
-
+	cursor.MovePosition(gui.QTextCursor__End, gui.QTextCursor__KeepAnchor, 0)
 	cursor.InsertText("\n\n")
-
-	//cursor.BeginEditBlock()
-
 	var afmt = gui.NewQTextCharFormat()
 	afmt.SetForeground(gui.NewQBrush3(gui.NewQColor2(core.Qt__black), core.Qt__SolidPattern))
 	afmt.SetFontPointSize(14)
-	cursor.MergeBlockCharFormat(afmt)
+
+	s.mergeFormatOnLineOrSelection(afmt)
 
 	//cursor.EndEditBlock()
 }
@@ -399,8 +512,14 @@ func (s *myWindow) setEditorFuncs() {
 	s.editor.ConnectTextChanged(func() {
 		curDiary.Modified = true
 		v := s.editor.ToPlainText()
-		secs := strings.SplitN(v, "\n", 2)
-		disp1 := fmt.Sprintf("%s-%s", curDiary.Day, secs[0])
+		secs := strings.Index(v, "\n")
+		var disp1 string
+		if secs == -1 {
+			disp1 = v
+		} else {
+			disp1 = fmt.Sprintf("%s-%s", curDiary.Day, v[:secs])
+		}
+
 		disp0 := curDiary.Item.Text()
 		if disp0 != disp1 {
 			p := curDiary.Item.Parent()
@@ -408,6 +527,7 @@ func (s *myWindow) setEditorFuncs() {
 			curDiary.Item = p.TakeChild(pos.Row(), pos.Column())
 			curDiary.Item.SetText(disp1)
 			p.SetChild(pos.Row(), pos.Column(), curDiary.Item)
+			s.tree.ResizeColumnToContents(0)
 		}
 	})
 }
@@ -427,6 +547,134 @@ func (s *myWindow) saveLastUser(name string) {
 	ioutil.WriteFile(path1, []byte(name), 0644)
 }
 
+func (s *myWindow) mergeFormatOnLineOrSelection(format *gui.QTextCharFormat) {
+	var cursor = s.editor.TextCursor()
+	if !cursor.HasSelection() {
+		cursor.Select(gui.QTextCursor__LineUnderCursor)
+	}
+	cursor.MergeCharFormat(format)
+	s.editor.MergeCurrentCharFormat(format)
+}
+
+func (s *myWindow) rename() {
+	dlg := widgets.NewQDialog(s.window, core.Qt__Dialog)
+	dlg.SetWindowTitle(T("Rename"))
+
+	grid := widgets.NewQGridLayout(dlg)
+
+	name := widgets.NewQLabel2(T("New Name:"), dlg, core.Qt__Widget)
+	grid.AddWidget(name, 0, 0, 0)
+
+	nameInput := widgets.NewQLineEdit(dlg)
+	grid.AddWidget(nameInput, 0, 1, 0)
+
+	okAct := widgets.NewQPushButton2(T("OK"), dlg)
+	grid.AddWidget(okAct, 1, 0, 0)
+	cancelAct := widgets.NewQPushButton2(T("Cancel"), dlg)
+	grid.AddWidget(cancelAct, 1, 1, 0)
+
+	okAct.ConnectClicked(func(checked bool) {
+		ret := widgets.QMessageBox_Question(dlg, T("Confirm"), T("Are you sure?"), widgets.QMessageBox__Yes|widgets.QMessageBox__Cancel, widgets.QMessageBox__Yes)
+		fmt.Println(ret)
+		if ret == widgets.QMessageBox__Yes {
+			if len(nameInput.Text()) == 0 {
+				return
+			}
+			s.db.Close()
+			dstName := path.Join(path.Dir(dataDir), nameInput.Text())
+			err := os.Rename(dataDir, dstName)
+			if err == nil {
+				widgets.QMessageBox_Information(dlg, T("Information"), T("Success,Please login again."), widgets.QMessageBox__Ok, widgets.QMessageBox__Ok)
+
+			} else {
+				widgets.QMessageBox_Information(dlg, T("Information"), T("Fail,Please login again."), widgets.QMessageBox__Ok, widgets.QMessageBox__Ok)
+			}
+		}
+		dlg.Hide()
+		s.window.Close()
+	})
+
+	cancelAct.ConnectClicked(func(c bool) {
+		dlg.Hide()
+		dlg.Destroy(true, true)
+	})
+
+	dlg.SetLayout(grid)
+	dlg.SetModal(true)
+	dlg.Show()
+}
+
+func (s *myWindow) updatePwd() {
+	dlg := widgets.NewQDialog(s.window, core.Qt__Dialog)
+	dlg.SetWindowTitle(T("Modify Password"))
+
+	grid := widgets.NewQGridLayout(dlg)
+
+	pwd1 := widgets.NewQLabel2(T("Old Password:"), dlg, core.Qt__Widget)
+
+	grid.AddWidget(pwd1, 0, 0, 0)
+
+	pwdInput1 := widgets.NewQLineEdit(dlg)
+	pwdInput1.SetEchoMode(widgets.QLineEdit__Password)
+	pwdInput1.SetPlaceholderText(T("Length Must >= 4"))
+	grid.AddWidget(pwdInput1, 0, 1, 0)
+
+	pwd2 := widgets.NewQLabel2(T("New Password:"), dlg, core.Qt__Widget)
+
+	grid.AddWidget(pwd2, 1, 0, 0)
+
+	pwdInput2 := widgets.NewQLineEdit(dlg)
+	pwdInput2.SetEchoMode(widgets.QLineEdit__Password)
+	pwdInput2.SetPlaceholderText(T("Length Must >= 4"))
+	grid.AddWidget(pwdInput2, 1, 1, 0)
+
+	pwd3 := widgets.NewQLabel2(T("Confirm Password:"), dlg, core.Qt__Widget)
+
+	grid.AddWidget(pwd3, 2, 0, 0)
+
+	pwdInput3 := widgets.NewQLineEdit(dlg)
+	pwdInput3.SetEchoMode(widgets.QLineEdit__Password)
+	pwdInput3.SetPlaceholderText(T("Length Must >= 4"))
+	grid.AddWidget(pwdInput3, 2, 1, 0)
+
+	okAct := widgets.NewQPushButton2(T("OK"), dlg)
+	grid.AddWidget(okAct, 3, 0, 0)
+	cancelAct := widgets.NewQPushButton2(T("Cancel"), dlg)
+	grid.AddWidget(cancelAct, 3, 1, 0)
+
+	okAct.ConnectClicked(func(checked bool) {
+		ret := widgets.QMessageBox_Question(dlg, T("Confirm"), T("Are you sure?"), widgets.QMessageBox__Yes|widgets.QMessageBox__Cancel, widgets.QMessageBox__Yes)
+
+		if ret == widgets.QMessageBox__Yes {
+			if len(pwdInput3.Text()) < 4 {
+				return
+			}
+			if pwdInput2.Text() != pwdInput3.Text() {
+				return
+			}
+			err := s.db.UpdateRealKeyAndSha40(pwdInput1.Text(), pwdInput2.Text())
+			if err == nil {
+				widgets.QMessageBox_Information(dlg, T("Information"), T("Success,Please login again."), widgets.QMessageBox__Ok, widgets.QMessageBox__Ok)
+				dlg.Hide()
+				s.window.Close()
+			} else {
+				widgets.QMessageBox_Information(dlg, T("Information"), T("Fail")+err.Error(), widgets.QMessageBox__Ok, widgets.QMessageBox__Ok)
+			}
+		}
+		dlg.Hide()
+		dlg.Destroy(true, true)
+	})
+
+	cancelAct.ConnectClicked(func(c bool) {
+		dlg.Hide()
+		dlg.Destroy(true, true)
+	})
+
+	dlg.SetLayout(grid)
+	dlg.SetModal(true)
+	dlg.Show()
+}
+
 func (s *myWindow) login() {
 	dlg := widgets.NewQDialog(s.window, core.Qt__Dialog)
 	dlg.SetWindowTitle(T("Login"))
@@ -441,11 +689,15 @@ func (s *myWindow) login() {
 	grid.AddWidget(nameInput, 0, 1, 0)
 
 	pwd := widgets.NewQLabel2(T("Password:"), dlg, core.Qt__Widget)
+
 	grid.AddWidget(pwd, 1, 0, 0)
 
 	pwdInput := widgets.NewQLineEdit(dlg)
 	pwdInput.SetEchoMode(widgets.QLineEdit__Password)
 	pwdInput.SetPlaceholderText(T("Length Must >= 4"))
+	if len(nameInput.Text()) > 0 {
+		pwdInput.SetFocus2()
+	}
 	grid.AddWidget(pwdInput, 1, 1, 0)
 
 	btb := widgets.NewQGridLayout(nil)
@@ -465,18 +717,24 @@ func (s *myWindow) login() {
 
 	dlg.SetModal(true)
 
+	minLen := 4
+
 	okBtn.ConnectClicked(func(b bool) {
 		var err error
-		if len(pwdInput.Text()) < 3 || len(nameInput.Text()) < 1 {
+		if len(pwdInput.Text()) < minLen || len(nameInput.Text()) < 1 {
 			return
 		}
 		s.db, err = getMyDb(nameInput.Text())
 		if err != nil {
-			panic(err)
+			widgets.QMessageBox_Information(dlg, T("Information"), T("Fail")+err.Error(), widgets.QMessageBox__Ok, widgets.QMessageBox__Ok)
+			dlg.Hide()
+			s.window.Close()
 		}
 		s.key, err = s.db.GetRealKey(pwdInput.Text())
 		if err != nil {
-			panic(err)
+			widgets.QMessageBox_Information(dlg, T("Information"), T("Fail")+err.Error(), widgets.QMessageBox__Ok, widgets.QMessageBox__Ok)
+			dlg.Hide()
+			s.window.Close()
 		}
 		s.saveLastUser(nameInput.Text())
 		s.window.SetWindowTitle(nameInput.Text())
@@ -485,7 +743,7 @@ func (s *myWindow) login() {
 	})
 
 	regBtn.ConnectClicked(func(b bool) {
-		if len(pwdInput.Text()) < 3 || len(nameInput.Text()) < 1 {
+		if len(pwdInput.Text()) < minLen || len(nameInput.Text()) < 1 {
 			return
 		}
 		err := createUserDb(nameInput.Text(), pwdInput.Text())
