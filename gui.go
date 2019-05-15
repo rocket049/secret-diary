@@ -59,12 +59,7 @@ func (s *myWindow) getNewId() (res int) {
 
 func (s *myWindow) setMenuBar() {
 	menubar := s.window.MenuBar()
-	menu := menubar.AddMenu2("&File")
-	open := menu.AddAction("&Open")
-	open.ConnectTriggered(func(b bool) {
-		log.Println("click open", b)
-		s.setStatusBar("click open")
-	})
+	menu := menubar.AddMenu2(T("Manage"))
 
 	ren := menu.AddAction(T("Rename"))
 	ren.ConnectTriggered(func(b bool) {
@@ -74,6 +69,18 @@ func (s *myWindow) setMenuBar() {
 	pwdNew := menu.AddAction(T("ModifyPassword"))
 	pwdNew.ConnectTriggered(func(b bool) {
 		s.updatePwd()
+	})
+
+	menu = menubar.AddMenu2(T("Help"))
+
+	about := menu.AddAction(T("About"))
+	about.ConnectTriggered(func(b bool) {
+		s.showMsg(T("About"), T("Copy Right: Fu Huizhong <fuhuizn@163.com>\nSecurity Diary Tool.\nCrypto with AES256"))
+	})
+
+	bak := menu.AddAction(T("Backup"))
+	bak.ConnectTriggered(func(b bool) {
+		s.showMsg(T("Backup"), T("Your DATA storge path is '")+dataDir+"'\nYou can backup the directory yourself.")
 	})
 }
 
@@ -255,7 +262,7 @@ func (s *myWindow) saveCurDiary() {
 		s.db.UpdateDiaryTitle(id, title)
 	}
 
-	encodeToFile(s.editor.ToHtml(), filename, s.key)
+	encodeToFile(s.getRichText(), filename, s.key)
 	s.setStatusBar(T("Save Diary") + fmt.Sprintf(" %s(%s)", title, filename))
 	curDiary.Modified = false
 }
@@ -380,7 +387,14 @@ func (s *myWindow) selectDiary(idx *core.QModelIndex) {
 		return
 	}
 	filename := diary.AccessibleText() + ".dat"
-	txt, err := decodeFromFile(filename, s.key)
+	data, err := decodeFromFile(filename, s.key)
+	var txt string
+	if err == nil {
+		qtxt, err := s.getQText(data)
+		if err == nil {
+			txt = qtxt.Html
+		}
+	}
 	if err != nil {
 		log.Println(err)
 		if curDiary.Item != nil {
@@ -777,6 +791,14 @@ func (s *myWindow) login() {
 	})
 
 	dlg.Show()
+}
+
+func (s *myWindow) showMsg(title, msg string) {
+	dlg := widgets.NewQMessageBox(s.window)
+	dlg.SetWindowTitle(title)
+	dlg.SetText(msg)
+	dlg.Exec()
+	dlg.Destroy(true, true)
 }
 
 func main() {

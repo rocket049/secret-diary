@@ -10,7 +10,6 @@ import (
 	"io"
 	"os"
 	"path"
-	"strings"
 )
 
 var dataDir string
@@ -84,7 +83,7 @@ func decodeRealKey(key, data, iv []byte) ([]byte, error) {
 	return res, nil
 }
 
-func encodeToFile(data, filename string, key []byte) error {
+func encodeToFile(data []byte, filename string, key []byte) error {
 	dataPath := path.Join(dataDir, filename)
 	fp, err := os.Create(dataPath)
 	if err != nil {
@@ -104,30 +103,30 @@ func encodeToFile(data, filename string, key []byte) error {
 	}
 	aesEncoder := cipher.NewCTR(aesBlock, iv)
 	wr := cipher.StreamWriter{S: aesEncoder, W: fp}
-	_, err = wr.Write([]byte(data))
+	_, err = wr.Write(data)
 	return err
 }
 
-func decodeFromFile(filename string, key []byte) (string, error) {
+func decodeFromFile(filename string, key []byte) ([]byte, error) {
 	dataPath := path.Join(dataDir, filename)
 	fp, err := os.Open(dataPath)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	defer fp.Close()
 
 	aesBlock, err := aes.NewCipher(key)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	iv := make([]byte, aesBlock.BlockSize())
 	_, err = io.ReadFull(fp, iv)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	aesStream := cipher.NewCTR(aesBlock, iv)
 	rd := cipher.StreamReader{S: aesStream, R: fp}
-	res := new(strings.Builder)
+	res := bytes.NewBufferString("")
 	_, err = io.Copy(res, rd)
-	return res.String(), err
+	return res.Bytes(), err
 }
