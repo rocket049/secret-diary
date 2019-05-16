@@ -1,6 +1,12 @@
 package main
 
 import (
+	"bufio"
+	"fmt"
+	"io/ioutil"
+	"regexp"
+	"strings"
+
 	"github.com/therecipe/qt/core"
 	"github.com/therecipe/qt/gui"
 	"github.com/therecipe/qt/widgets"
@@ -135,4 +141,41 @@ func (s *myWindow) textItalic() {
 	var afmt = gui.NewQTextCharFormat()
 	afmt.SetFontItalic(s.actionTextItalic.IsChecked())
 	s.mergeFormatOnLineOrSelection(afmt)
+}
+
+func (s *myWindow) insertImage() {
+	filename := widgets.QFileDialog_GetOpenFileName(t.Window(), "select a file", ".", "Image (*.png *.jpg)", "Image (*.png *.jpg)", widgets.QFileDialog__ReadOnly)
+	data, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return
+	}
+	img := gui.NewQImage()
+	ok := img.LoadFromData(data, len(data), "")
+	if !ok {
+		return
+	}
+	uri := core.NewQUrl3("rc://"+filename, core.QUrl__TolerantMode)
+
+	s.editor.Document().AddResource(int(gui.QTextDocument__ImageResource), uri, img.ToVariant())
+
+	cursor := s.editor.TextCursor()
+	cursor.InsertImage4(img, uri.Url(core.QUrl__None))
+}
+
+func (s *myWindow) getImageList(html string) []string {
+	r := strings.NewReader(html)
+	bufr := bufio.NewReader(r)
+	regex, err := regexp.Compile(`<img src="([^"]+)" />`)
+	if err != nil {
+		fmt.Println(err)
+	}
+	res := []string{}
+	for line, _, err := bufr.ReadLine(); err == nil; line, _, err = bufr.ReadLine() {
+		line1 := string(line)
+		res1 := regex.FindAllStringSubmatch(line1, -1)
+		for i := 0; i < len(res1); i++ {
+			res = append(res, res1[i][1])
+		}
+	}
+	return res
 }

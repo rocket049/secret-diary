@@ -7,7 +7,7 @@ import (
 
 type qtextFormat struct {
 	Html   string
-	Images []map[string][]byte
+	Images map[string][]byte
 }
 
 func (s *myWindow) getRichText() []byte {

@@ -52,6 +52,7 @@ type myWindow struct {
 	key                 []byte
 	db                  *myDb
 	bridge              *QmlBridge
+	document            qtextFormat
 }
 
 func (s *myWindow) getNewId() (res int) {
@@ -59,6 +60,7 @@ func (s *myWindow) getNewId() (res int) {
 }
 
 func (s *myWindow) setMenuBar() {
+	s.document.Images = make(map[string][]byte)
 	menubar := s.window.MenuBar()
 	menu := menubar.AddMenu2(T("Manage"))
 
