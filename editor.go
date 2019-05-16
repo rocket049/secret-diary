@@ -2,9 +2,9 @@ package main
 
 import (
 	"bufio"
-	"fmt"
 	"io/ioutil"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/therecipe/qt/core"
@@ -144,7 +144,7 @@ func (s *myWindow) textItalic() {
 }
 
 func (s *myWindow) insertImage() {
-	filename := widgets.QFileDialog_GetOpenFileName(t.Window(), "select a file", ".", "Image (*.png *.jpg)", "Image (*.png *.jpg)", widgets.QFileDialog__ReadOnly)
+	filename := widgets.QFileDialog_GetOpenFileName(s.window, "select a file", ".", "Image (*.png *.jpg)", "Image (*.png *.jpg)", widgets.QFileDialog__ReadOnly)
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return
@@ -157,9 +157,10 @@ func (s *myWindow) insertImage() {
 	uri := core.NewQUrl3("rc://"+filename, core.QUrl__TolerantMode)
 
 	s.editor.Document().AddResource(int(gui.QTextDocument__ImageResource), uri, img.ToVariant())
-
+	url := uri.Url(core.QUrl__None)
 	cursor := s.editor.TextCursor()
-	cursor.InsertImage4(img, uri.Url(core.QUrl__None))
+	cursor.InsertImage4(img, url)
+	s.document.Images[url] = data
 }
 
 func (s *myWindow) getImageList(html string) []string {
@@ -167,7 +168,8 @@ func (s *myWindow) getImageList(html string) []string {
 	bufr := bufio.NewReader(r)
 	regex, err := regexp.Compile(`<img src="([^"]+)" />`)
 	if err != nil {
-		fmt.Println(err)
+		//fmt.Println(err)
+		return nil
 	}
 	res := []string{}
 	for line, _, err := bufr.ReadLine(); err == nil; line, _, err = bufr.ReadLine() {
@@ -178,4 +180,64 @@ func (s *myWindow) getImageList(html string) []string {
 		}
 	}
 	return res
+}
+
+func (s *myWindow) insertTable() {
+	dlg := widgets.NewQDialog(s.window, core.Qt__Dialog)
+	dlg.SetWindowTitle(T("Table Rows and Columns"))
+
+	grid := widgets.NewQGridLayout(dlg)
+
+	row := widgets.NewQLabel2(T("Rows:"), dlg, core.Qt__Widget)
+	grid.AddWidget(row, 0, 0, 0)
+
+	rowInput := widgets.NewQLineEdit(dlg)
+	rowInput.SetText("3")
+	rowInput.SetValidator(gui.NewQIntValidator(dlg))
+	grid.AddWidget(rowInput, 0, 1, 0)
+
+	col := widgets.NewQLabel2(T("Columns:"), dlg, core.Qt__Widget)
+
+	grid.AddWidget(col, 1, 0, 0)
+
+	colInput := widgets.NewQLineEdit(dlg)
+	colInput.SetText("3")
+	colInput.SetValidator(gui.NewQIntValidator(dlg))
+	grid.AddWidget(colInput, 1, 1, 0)
+
+	btb := widgets.NewQGridLayout(nil)
+
+	okBtn := widgets.NewQPushButton2(T("OK"), dlg)
+	btb.AddWidget(okBtn, 0, 0, 0)
+
+	cancelBtn := widgets.NewQPushButton2(T("Cancel"), dlg)
+	btb.AddWidget(cancelBtn, 0, 1, 0)
+
+	grid.AddLayout2(btb, 2, 0, 1, 2, 0)
+
+	dlg.SetLayout(grid)
+
+	okBtn.ConnectClicked(func(b bool) {
+		cursor := s.editor.TextCursor()
+		r, err := strconv.Atoi(rowInput.Text())
+		if err != nil {
+			return
+		}
+		c, err := strconv.Atoi(colInput.Text())
+		if err != nil {
+			return
+		}
+		tbl := cursor.InsertTable2(r, c)
+		tbl.Format().SetBorderBrush(gui.NewQBrush2(core.Qt__SolidPattern))
+		dlg.Hide()
+		dlg.Destroy(true, true)
+	})
+
+	cancelBtn.ConnectClicked(func(b bool) {
+		dlg.Hide()
+		dlg.Destroy(true, true)
+	})
+
+	dlg.SetModal(true)
+	dlg.Show()
 }

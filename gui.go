@@ -61,6 +61,7 @@ func (s *myWindow) getNewId() (res int) {
 
 func (s *myWindow) setMenuBar() {
 	s.document.Images = make(map[string][]byte)
+
 	menubar := s.window.MenuBar()
 	menu := menubar.AddMenu2(T("Manage"))
 
@@ -112,14 +113,17 @@ func (s *myWindow) setToolBar() {
 	bar = widgets.NewQToolBar("Format", nil)
 
 	head1 := bar.AddAction("H1")
+	head1.SetToolTip(T("Header 1"))
 	head1.ConnectTriggered(func(b bool) {
 		s.setHeader(1)
 	})
 	head2 := bar.AddAction("H2")
+	head2.SetToolTip(T("Header 2"))
 	head2.ConnectTriggered(func(b bool) {
 		s.setHeader(2)
 	})
 	head3 := bar.AddAction("H3")
+	head3.SetToolTip(T("Header 3"))
 	head3.ConnectTriggered(func(b bool) {
 		s.setHeader(3)
 	})
@@ -183,6 +187,22 @@ func (s *myWindow) setToolBar() {
 	comboStyle.ConnectActivated(s.textStyle)
 
 	s.window.AddToolBar2(bar)
+
+	bar = widgets.NewQToolBar("Insert", nil)
+
+	addImage := bar.AddAction(T("Image"))
+	addImage.SetToolTip(T("Insert Image"))
+	addImage.ConnectTriggered(func(b bool) {
+		s.insertImage()
+	})
+
+	addTable := bar.AddAction(T("Table"))
+	addTable.SetToolTip(T("Insert Table"))
+	addTable.ConnectTriggered(func(b bool) {
+		s.insertTable()
+	})
+
+	s.window.AddToolBar2(bar)
 }
 
 func (s *myWindow) setStatusBar(msg string) {
@@ -204,8 +224,8 @@ func (s *myWindow) Create(app *widgets.QApplication) {
 	s.window.SetCentralWidget(frame)
 
 	s.tree = widgets.NewQTreeView(s.window)
-	s.tree.SetFixedWidth(200)
-	s.tree.SetSizePolicy2(widgets.QSizePolicy__Fixed, widgets.QSizePolicy__Expanding)
+	s.tree.SetFixedWidth(240)
+	s.tree.SetSizePolicy2(widgets.QSizePolicy__Preferred, widgets.QSizePolicy__Expanding)
 	s.tree.SetHorizontalScrollBarPolicy(core.Qt__ScrollBarAsNeeded)
 	s.tree.SetAutoScroll(true)
 	s.model = gui.NewQStandardItemModel2(0, 1, s.tree)
@@ -232,7 +252,7 @@ func (s *myWindow) Create(app *widgets.QApplication) {
 	app.SetActiveWindow(s.window)
 	app.SetApplicationDisplayName(T("Secret Diary"))
 	app.SetApplicationName("sdiary")
-	app.SetApplicationVersion("0.0.1")
+	app.SetApplicationVersion("1.0.1")
 
 	s.setEditorFuncs()
 	s.setTreeFuncs()
@@ -245,7 +265,7 @@ func (s *myWindow) Create(app *widgets.QApplication) {
 	s.window.ConnectCloseEvent(func(e *gui.QCloseEvent) {
 		s.db.Close()
 	})
-	s.window.Show()
+	s.window.ShowMaximized()
 }
 
 func (s *myWindow) saveCurDiary() {
@@ -404,17 +424,17 @@ func (s *myWindow) selectDiary(idx *core.QModelIndex) {
 	if diary.Pointer() == curDiary.Item.Pointer() {
 		return
 	}
+	if len(diary.AccessibleText()) == 0 {
+		return
+	}
 	filename := diary.AccessibleText() + ".dat"
 	data, err := decodeFromFile(filename, s.key)
-	var txt string
+
 	if err == nil {
-		qtxt, err := s.getQText(data)
-		if err == nil {
-			txt = qtxt.Html
-		}
+		_, err = s.getQText(data)
 	}
 	if err != nil {
-		log.Println(err)
+		//log.Println(err)
 		if curDiary.Item != nil {
 			s.saveCurDiary()
 		}
@@ -424,7 +444,7 @@ func (s *myWindow) selectDiary(idx *core.QModelIndex) {
 		vs := strings.Index(diary.Text(), "-")
 		curDiary.Day = diary.Text()[:vs]
 		s.setTitle(diary.Text()[vs+1:])
-		//fmt.Println(curDiary.Day)
+
 	} else {
 		if curDiary.Item != nil {
 			s.saveCurDiary()
@@ -434,8 +454,8 @@ func (s *myWindow) selectDiary(idx *core.QModelIndex) {
 		curDiary.YearMonth = diary.Parent().Text()
 		vs := strings.Index(diary.Text(), "-")
 		curDiary.Day = diary.Text()[:vs]
-		//s.editor.SetHtml(txt)
-		s.editor.Document().SetHtml(txt)
+
+		s.editor.Document().SetHtml(s.document.Html)
 		s.editor.Document().SetModified(false)
 	}
 
@@ -503,10 +523,8 @@ func (s *myWindow) setTreeFuncs() {
 	s.tree.SetSelectionMode(widgets.QAbstractItemView__SingleSelection)
 
 	s.tree.ConnectMouseReleaseEvent(func(e *gui.QMouseEvent) {
-		//fmt.Println(e.Button())
+
 		idx := s.tree.IndexAt(e.Pos())
-		//fmt.Println(s.model.ItemFromIndex(idx).Text())
-		//s.tree.SetCurrentIndex(idx)
 
 		switch e.Button() {
 		case core.Qt__LeftButton:
@@ -523,24 +541,30 @@ func (s *myWindow) setTitle(v string) {
 	s.editor.SetText("")
 	var cfmt = gui.NewQTextCharFormat()
 	cfmt.SetFontPointSize(18)
-
 	cfmt.SetForeground(gui.NewQBrush3(gui.NewQColor2(core.Qt__blue), core.Qt__SolidPattern))
-	s.mergeFormatOnLineOrSelection(cfmt)
 
 	cursor := s.editor.TextCursor()
 	cursor.InsertText(v)
-	cursor.MovePosition(gui.QTextCursor__End, gui.QTextCursor__KeepAnchor, 0)
-	cursor.InsertText("\n\n")
+	s.mergeFormatOnLineOrSelection(cfmt)
+
+	//cursor.MovePosition(gui.QTextCursor__End, gui.QTextCursor__KeepAnchor, 0)
+	cursor.InsertText("\n")
 	var afmt = gui.NewQTextCharFormat()
 	afmt.SetForeground(gui.NewQBrush3(gui.NewQColor2(core.Qt__black), core.Qt__SolidPattern))
 	afmt.SetFontPointSize(14)
 
 	s.mergeFormatOnLineOrSelection(afmt)
+	cursor.InsertText("\n")
 
 	//cursor.EndEditBlock()
 }
 
 func (s *myWindow) setEditorFuncs() {
+	var cfmt = gui.NewQTextCharFormat()
+	cfmt.SetFontPointSize(18)
+	cfmt.SetForeground(gui.NewQBrush3(gui.NewQColor2(core.Qt__blue), core.Qt__SolidPattern))
+	s.editor.SetCurrentCharFormat(cfmt)
+
 	s.editor.ConnectTextChanged(func() {
 		curDiary.Modified = true
 		v := s.editor.ToPlainText()
@@ -561,6 +585,7 @@ func (s *myWindow) setEditorFuncs() {
 			p.SetChild(pos.Row(), pos.Column(), curDiary.Item)
 			s.tree.ResizeColumnToContents(0)
 		}
+
 	})
 }
 

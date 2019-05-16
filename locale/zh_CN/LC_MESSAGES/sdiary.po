@@ -158,3 +158,33 @@ msgstr "列表(小写罗马数字)"
 
 msgid "List (Roman upper)"
 msgstr "列表(大写罗马数字)"
+
+msgid "Header 2"
+msgstr "二级标题"
+
+msgid "Header 3"
+msgstr "三级标题"
+
+msgid "Image"
+msgstr "图片"
+
+msgid "Insert Image"
+msgstr "插入图片"
+
+msgid "Header 1"
+msgstr "一级标题"
+
+msgid "Table"
+msgstr "表格"
+
+msgid "Insert Table"
+msgstr "插入表格"
+
+msgid "Table Rows and Columns"
+msgstr "表格行数和列数"
+
+msgid "Rows:"
+msgstr "行数"
+
+msgid "Columns:"
+msgstr "列数"
