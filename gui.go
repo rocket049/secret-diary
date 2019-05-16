@@ -47,6 +47,7 @@ type myWindow struct {
 	actionTextBold      *widgets.QAction
 	actionTextUnderline *widgets.QAction
 	actionTextItalic    *widgets.QAction
+	actionStrikeOut     *widgets.QAction
 	user                string
 	key                 []byte
 	db                  *myDb
@@ -81,6 +82,11 @@ func (s *myWindow) setMenuBar() {
 	bak := menu.AddAction(T("Backup"))
 	bak.ConnectTriggered(func(b bool) {
 		s.showMsg(T("Backup"), T("Your DATA storge path is '")+dataDir+"'\nYou can backup the directory yourself.")
+	})
+
+	pwd := menu.AddAction(T("Password"))
+	pwd.ConnectTriggered(func(b bool) {
+		s.showMsg(T("Password"), T("There is no way to recover password. \nPlease write it on paper!"))
 	})
 }
 
@@ -126,20 +132,30 @@ func (s *myWindow) setToolBar() {
 
 	s.actionTextBold = bar.AddAction("B")
 	s.actionTextBold.SetCheckable(true)
+	s.actionTextBold.SetToolTip(T("Bold"))
 	s.actionTextBold.ConnectTriggered(func(checked bool) {
 		s.textBold()
 	})
 
 	s.actionTextItalic = bar.AddAction("I")
 	s.actionTextItalic.SetCheckable(true)
+	s.actionTextItalic.SetToolTip(T("Italic"))
 	s.actionTextItalic.ConnectTriggered(func(checked bool) {
 		s.textItalic()
 	})
 
 	s.actionTextUnderline = bar.AddAction("U")
 	s.actionTextUnderline.SetCheckable(true)
+	s.actionTextUnderline.SetToolTip(T("Underline"))
 	s.actionTextUnderline.ConnectTriggered(func(checked bool) {
 		s.textUnderline()
+	})
+
+	s.actionStrikeOut = bar.AddAction("D")
+	s.actionStrikeOut.SetCheckable(true)
+	s.actionStrikeOut.SetToolTip(T("StrikeOut"))
+	s.actionStrikeOut.ConnectTriggered(func(checked bool) {
+		s.textStrikeOut()
 	})
 
 	var pix = gui.NewQPixmap3(16, 16)
@@ -152,15 +168,15 @@ func (s *myWindow) setToolBar() {
 	comboStyle := widgets.NewQComboBox(bar)
 	bar.AddWidget(comboStyle)
 	comboStyle.AddItems([]string{
-		"Standard",
-		"List (Disc)",
-		"List (Circle)",
-		"List (Square)",
-		"List (Decimal)",
-		"List (Alpha lower)",
-		"List (Alpha upper)",
-		"List (Roman lower)",
-		"List (Roman upper)",
+		T("Standard"),
+		T("List (Disc)"),
+		T("List (Circle)"),
+		T("List (Square)"),
+		T("List (Decimal)"),
+		T("List (Alpha lower)"),
+		T("List (Alpha upper)"),
+		T("List (Roman lower)"),
+		T("List (Roman upper)"),
 	})
 	comboStyle.ConnectActivated(s.textStyle)
 
@@ -760,6 +776,16 @@ func (s *myWindow) login() {
 		if len(pwdInput.Text()) < minLen || len(nameInput.Text()) < 1 {
 			return
 		}
+		var ok bool
+		confirm := widgets.QInputDialog_GetText(dlg, T("Confirm"), T("Name:")+nameInput.Text(), widgets.QLineEdit__Password, "",
+			&ok, core.Qt__Dialog, core.Qt__ImhNone)
+		if !ok {
+			return
+		}
+		if confirm != pwdInput.Text() {
+			s.showMsg(T("Fail"), T("Password Not Match"))
+			return
+		}
 		err := createUserDb(nameInput.Text(), pwdInput.Text())
 		if err != nil {
 			panic(err)
@@ -802,9 +828,9 @@ func (s *myWindow) showMsg(title, msg string) {
 }
 
 func main() {
+	//defer gettext.SaveLog()
 	app := widgets.NewQApplication(len(os.Args), os.Args)
 	window := new(myWindow)
 	window.Create(app)
-	res := app.Exec()
-	os.Exit(res)
+	app.Exec()
 }

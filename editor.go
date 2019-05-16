@@ -125,6 +125,12 @@ func (s *myWindow) textUnderline() {
 	s.mergeFormatOnLineOrSelection(afmt)
 }
 
+func (s *myWindow) textStrikeOut() {
+	var afmt = gui.NewQTextCharFormat()
+	afmt.SetFontStrikeOut(s.actionStrikeOut.IsChecked())
+	s.mergeFormatOnLineOrSelection(afmt)
+}
+
 func (s *myWindow) textItalic() {
 	var afmt = gui.NewQTextCharFormat()
 	afmt.SetFontItalic(s.actionTextItalic.IsChecked())

@@ -1,0 +1,160 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-01-05 19:03+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Name:"
+msgstr "用户名："
+
+msgid "Manage"
+msgstr "管理"
+
+msgid "Help"
+msgstr "帮助"
+
+msgid ""
+"Copy Right: Fu Huizhong <fuhuizn@163.com>\n"
+"Security Diary Tool.\n"
+"Crypto with AES256"
+msgstr ""
+"版权所有：Fu Huizhong <fuhuizn@163.com>\n"
+"安全日记本\n"
+"使用256位AES加密算法"
+
+msgid "About"
+msgstr "关于"
+
+msgid "Rename"
+msgstr "改名"
+
+msgid "Length Must >= 4"
+msgstr "最小长度: 4"
+
+msgid "Confirm Password:"
+msgstr "确认密码："
+
+msgid "Your DATA storge path is '"
+msgstr "你的数据保存目录："
+
+msgid "Password"
+msgstr "密码"
+
+msgid "Password:"
+msgstr "密码："
+
+msgid "ModifyPassword"
+msgstr "修改密码"
+
+msgid "New Password:"
+msgstr "新密码"
+
+msgid "New"
+msgstr "新建"
+
+msgid "Backup"
+msgstr "备份"
+
+msgid "Register"
+msgstr "注册"
+
+msgid "Modify Password"
+msgstr "修改密码"
+
+msgid "Old Password:"
+msgstr "旧密码"
+
+msgid "Save"
+msgstr "保存"
+
+msgid "Secret Diary"
+msgstr "安全日记本"
+
+msgid "Loading Diary List..."
+msgstr "加载日记..."
+
+msgid "New Name:"
+msgstr "新用户名："
+
+msgid "Diary List"
+msgstr "日记列表"
+
+msgid "Last Modified:"
+msgstr "最后修改时间："
+
+msgid "Standard"
+msgstr "正文"
+
+msgid ""
+"There is no way to recover password. \n"
+"Please write it on paper!"
+msgstr ""
+"没有任何捷径恢复密码。\n"
+"建议把密码记在纸上。"
+
+msgid "No Diary Saved"
+msgstr "无需保存"
+
+msgid "OK"
+msgstr "确定"
+
+msgid "UserName"
+msgstr "用户名"
+
+msgid "Cancel"
+msgstr "取消"
+
+msgid "Login"
+msgstr "登陆"
+
+msgid "Confirm"
+msgstr "确认密码"
+
+msgid "Bold"
+msgstr "粗体"
+
+msgid "Italic"
+msgstr "斜体"
+
+msgid "Underline"
+msgstr "下划线"
+
+msgid "StrikeOut"
+msgstr "删除线"
+
+msgid "List (Disc)"
+msgstr "列表(实心点)"
+
+msgid "List (Circle)"
+msgstr "列表(空心圆)"
+
+msgid "List (Square)"
+msgstr "列表(方块)"
+
+msgid "List (Decimal)"
+msgstr "列表(数字)"
+
+msgid "List (Alpha lower)"
+msgstr "列表(小写字母)"
+
+msgid "List (Alpha upper)"
+msgstr "列表(大写字母)"
+
+msgid "List (Roman lower)"
+msgstr "列表(小写罗马数字)"
+
+msgid "List (Roman upper)"
+msgstr "列表(大写罗马数字)"
