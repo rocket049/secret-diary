@@ -4,5 +4,5 @@ moc*
 rcc*
 /testdata
 messages.log
-setup_launcher
+linux_launcher
 setup
