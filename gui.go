@@ -216,6 +216,7 @@ func (s *myWindow) Create(app *widgets.QApplication) {
 
 	s.window.SetWindowTitle(T("UserName"))
 	s.window.SetMinimumSize2(800, 600)
+	s.window.SetWindowIcon(gui.NewQIcon5(":/qml/icons/Sd.png"))
 
 	grid := widgets.NewQGridLayout2()
 
