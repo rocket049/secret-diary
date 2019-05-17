@@ -313,10 +313,6 @@ func (s *myWindow) saveCurDiary() {
 	curDiary.Modified = false
 }
 
-func (s *myWindow) clearEditor() {
-	s.editor.SetText("")
-}
-
 func (s *myWindow) addDiary(yearMonth, day, title string) {
 	if curDiary.Item != nil {
 		s.saveCurDiary()
@@ -336,8 +332,6 @@ func (s *myWindow) addDiary(yearMonth, day, title string) {
 	curDiary.Day = day
 	curDiary.YearMonth = yearMonth
 
-	//s.editor.SetText(title + "\n")
-	s.clearEditor()
 	s.setTitle(title)
 
 	s.tree.Expand(month.Index())
@@ -546,7 +540,7 @@ func (s *myWindow) setTreeFuncs() {
 }
 
 func (s *myWindow) setTitle(v string) {
-	s.editor.SetText("")
+	s.editor.Clear()
 	var cfmt = gui.NewQTextCharFormat()
 	cfmt.SetFontPointSize(18)
 	cfmt.SetForeground(gui.NewQBrush3(gui.NewQColor2(core.Qt__blue), core.Qt__SolidPattern))
