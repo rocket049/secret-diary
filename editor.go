@@ -115,6 +115,16 @@ func (s *myWindow) textColor() {
 	s.mergeFormatOnLineOrSelection(cfmt)
 }
 
+func (s *myWindow) textBgColor() {
+	var col = widgets.QColorDialog_GetColor(s.editor.TextColor(), s.editor, "", 0)
+	if !col.IsValid() {
+		return
+	}
+	var cfmt = gui.NewQTextCharFormat()
+	cfmt.SetBackground(gui.NewQBrush3(col, core.Qt__SolidPattern))
+	s.mergeFormatOnLineOrSelection(cfmt)
+}
+
 func (s *myWindow) textBold() {
 	var afmt = gui.NewQTextCharFormat()
 	var fw = gui.QFont__Normal

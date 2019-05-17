@@ -164,11 +164,16 @@ func (s *myWindow) setToolBar() {
 		s.textStrikeOut()
 	})
 
-	var pix = gui.NewQPixmap3(16, 16)
-	pix.Fill(gui.NewQColor2(core.Qt__red))
-	actionTextColor := bar.AddAction2(gui.NewQIcon2(pix), "&Color...")
+	var icon = gui.NewQIcon5(":/qml/icons/fg.png")
+	actionTextColor := bar.AddAction2(icon, T("Text Color..."))
 	actionTextColor.ConnectTriggered(func(checked bool) {
 		s.textColor()
+	})
+
+	icon = gui.NewQIcon5(":/qml/icons/bg.png")
+	actionBgColor := bar.AddAction2(icon, T("Background Color..."))
+	actionBgColor.ConnectTriggered(func(checked bool) {
+		s.textBgColor()
 	})
 
 	comboStyle := widgets.NewQComboBox(bar)
