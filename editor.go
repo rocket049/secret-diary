@@ -251,3 +251,55 @@ func (s *myWindow) insertTable() {
 	dlg.SetModal(true)
 	dlg.Show()
 }
+
+func (s *myWindow) addJustifyActions(tb *widgets.QToolBar) {
+	rsrcPath := ":/qml/icons"
+	var leftIcon = gui.QIcon_FromTheme2("format-justify-left", gui.NewQIcon5(rsrcPath+"/textleft.png"))
+	actionAlignLeft := tb.AddAction2(leftIcon, "&Left")
+	actionAlignLeft.SetPriority(widgets.QAction__LowPriority)
+	actionAlignLeft.ConnectTriggered(func(b bool) {
+		s.textAlign(1)
+	})
+
+	var centerIcon = gui.QIcon_FromTheme2("format-justify-center", gui.NewQIcon5(rsrcPath+"/textcenter.png"))
+	actionAlignCenter := tb.AddAction2(centerIcon, "C&enter")
+	actionAlignCenter.SetPriority(widgets.QAction__LowPriority)
+	actionAlignCenter.ConnectTriggered(func(b bool) {
+		s.textAlign(2)
+	})
+
+	var rightIcon = gui.QIcon_FromTheme2("format-justify-right", gui.NewQIcon5(rsrcPath+"/textright.png"))
+	actionAlignRight := tb.AddAction2(rightIcon, "&Right")
+	actionAlignRight.SetPriority(widgets.QAction__LowPriority)
+	actionAlignRight.ConnectTriggered(func(b bool) {
+		s.textAlign(3)
+	})
+
+	var fillIcon = gui.QIcon_FromTheme2("format-justify-fill", gui.NewQIcon5(rsrcPath+"/textjustify.png"))
+	actionAlignJustify := tb.AddAction2(fillIcon, "&Justify")
+	actionAlignJustify.SetPriority(widgets.QAction__LowPriority)
+	actionAlignJustify.ConnectTriggered(func(b bool) {
+		s.textAlign(4)
+	})
+}
+
+func (s *myWindow) textAlign(n int) {
+	switch n {
+	case 1:
+
+		s.editor.SetAlignment(core.Qt__AlignLeft | core.Qt__AlignAbsolute)
+
+	case 2:
+
+		s.editor.SetAlignment(core.Qt__AlignHCenter)
+
+	case 3:
+
+		s.editor.SetAlignment(core.Qt__AlignRight | core.Qt__AlignAbsolute)
+
+	case 4:
+
+		s.editor.SetAlignment(core.Qt__AlignJustify)
+
+	}
+}

@@ -188,3 +188,9 @@ msgstr "行数"
 
 msgid "Columns:"
 msgstr "列数"
+
+msgid "Text Color..."
+msgstr "文字颜色"
+
+msgid "Background Color..."
+msgstr "背景颜色"

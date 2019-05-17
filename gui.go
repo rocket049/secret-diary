@@ -176,6 +176,8 @@ func (s *myWindow) setToolBar() {
 		s.textBgColor()
 	})
 
+	s.addJustifyActions(bar)
+
 	comboStyle := widgets.NewQComboBox(bar)
 	bar.AddWidget(comboStyle)
 	comboStyle.AddItems([]string{
