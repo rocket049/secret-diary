@@ -326,6 +326,7 @@ func (s *myWindow) addDiary(yearMonth, day, title string) {
 
 	//month.AppendRow2(diary)
 	month.InsertRow2(0, diary)
+
 	s.tree.SetCurrentIndex(diary.Index())
 
 	curDiary.Item = diary
@@ -376,8 +377,7 @@ func (s *myWindow) addYearMonthsFromDb() {
 			s.bridge.AddYearMonth(yms[i])
 		}
 		wg.Wait()
-		topidx := core.NewQModelIndex()
-		pidx := s.model.Parent(topidx)
+		pidx := s.tree.RootIndex()
 		for r := 0; r < s.model.RowCount(pidx); r++ {
 			if r > 2 {
 				break
