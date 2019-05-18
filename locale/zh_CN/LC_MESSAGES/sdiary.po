@@ -194,3 +194,12 @@ msgstr "文字颜色"
 
 msgid "Background Color..."
 msgstr "背景颜色"
+
+msgid "New Diary"
+msgstr "新日记"
+
+msgid "Font"
+msgstr "字体"
+
+msgid "CurrentFont"
+msgstr "当前字体"

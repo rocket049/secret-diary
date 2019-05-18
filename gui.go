@@ -91,6 +91,7 @@ func (s *myWindow) setMenuBar() {
 	pwd.ConnectTriggered(func(b bool) {
 		s.showMsg(T("Password"), T("There is no way to recover password. \nPlease write it on paper!"))
 	})
+
 }
 
 func (s *myWindow) setToolBar() {
@@ -99,7 +100,7 @@ func (s *myWindow) setToolBar() {
 	act1.ConnectTriggered(func(b bool) {
 		s.setStatusBar(T("New Diary"))
 		now := time.Now()
-		s.addDiary(now.Format("2006-01"), now.Format("02"), T("New Dialy"))
+		s.addDiary(now.Format("2006-01"), now.Format("02"), T("New Diary")+now.Format("2006-01-02"))
 	})
 
 	act2 := bar.AddAction(T("Save"))
@@ -207,6 +208,18 @@ func (s *myWindow) setToolBar() {
 	addTable.SetToolTip(T("Insert Table"))
 	addTable.ConnectTriggered(func(b bool) {
 		s.insertTable()
+	})
+
+	font := bar.AddAction(T("Font"))
+	font.SetToolTip(T("CurrentFont"))
+	font.ConnectTriggered(func(b bool) {
+		var ok bool
+		f := widgets.QFontDialog_GetFont2(&ok, s.window)
+		if ok {
+			cfmt := gui.NewQTextCharFormat()
+			cfmt.SetFont2(f)
+			s.mergeFormatOnLineOrSelection(cfmt)
+		}
 	})
 
 	s.window.AddToolBar2(bar)
@@ -562,10 +575,6 @@ func (s *myWindow) setTitle(v string) {
 }
 
 func (s *myWindow) setEditorFuncs() {
-	var cfmt = gui.NewQTextCharFormat()
-	cfmt.SetFontPointSize(18)
-	cfmt.SetForeground(gui.NewQBrush3(gui.NewQColor2(core.Qt__blue), core.Qt__SolidPattern))
-	s.editor.SetCurrentCharFormat(cfmt)
 
 	s.editor.ConnectTextChanged(func() {
 		curDiary.Modified = true
