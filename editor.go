@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"io/ioutil"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -164,31 +165,136 @@ func (s *myWindow) insertImage() {
 	if !ok {
 		return
 	}
+
 	uri := core.NewQUrl3("rc://"+filename, core.QUrl__TolerantMode)
+
+	img = s.scaleImage(img)
 
 	s.editor.Document().AddResource(int(gui.QTextDocument__ImageResource), uri, img.ToVariant())
 	url := uri.Url(core.QUrl__None)
 	cursor := s.editor.TextCursor()
 	cursor.InsertImage4(img, url)
-	s.document.Images[url] = data
+
+	ba := core.NewQByteArray()
+
+	iod := core.NewQBuffer2(ba, nil)
+
+	iod.Open(core.QIODevice__WriteOnly)
+
+	ok = img.Save2(iod, filepath.Ext(filename)[1:], -1)
+	//fmt.Println(filepath.Ext(filename))
+	if ok {
+		s.document.Images[url] = []byte(ba.Data())
+	}
+
+	//fmt.Println("save image:", ok)
+}
+
+func (s *myWindow) scaleImage(src *gui.QImage) (res *gui.QImage) {
+	dlg := widgets.NewQDialog(s.window, core.Qt__Dialog)
+	dlg.SetWindowTitle(T("Scale Image Size"))
+
+	grid := widgets.NewQGridLayout(dlg)
+
+	width := widgets.NewQLabel2(strconv.Itoa(src.Width())+" =>", dlg, core.Qt__Widget)
+	grid.AddWidget(width, 0, 0, 0)
+
+	widthInput := widgets.NewQLineEdit(dlg)
+	widthInput.SetText(strconv.Itoa(src.Width()))
+	widthInput.SetValidator(gui.NewQIntValidator(dlg))
+	grid.AddWidget(widthInput, 0, 1, 0)
+
+	height := widgets.NewQLabel2(strconv.Itoa(src.Height())+" =>", dlg, core.Qt__Widget)
+
+	grid.AddWidget(height, 1, 0, 0)
+
+	heightInput := widgets.NewQLineEdit(dlg)
+	heightInput.SetText(strconv.Itoa(src.Height()))
+	heightInput.SetValidator(gui.NewQIntValidator(dlg))
+	grid.AddWidget(heightInput, 1, 1, 0)
+
+	btb := widgets.NewQGridLayout(nil)
+
+	okBtn := widgets.NewQPushButton2(T("OK"), dlg)
+	btb.AddWidget(okBtn, 0, 0, 0)
+
+	cancelBtn := widgets.NewQPushButton2(T("Cancel"), dlg)
+	btb.AddWidget(cancelBtn, 0, 1, 0)
+
+	grid.AddLayout2(btb, 2, 0, 1, 2, 0)
+
+	dlg.SetLayout(grid)
+
+	widthInput.ConnectKeyReleaseEvent(func(e *gui.QKeyEvent) {
+		w, err := strconv.Atoi(widthInput.Text())
+		if err != nil {
+			return
+		}
+		w0 := float64(src.Width())
+		h0 := float64(src.Height())
+		h := float64(w) * h0 / w0
+		heightInput.SetText(strconv.Itoa(int(h)))
+	})
+	heightInput.ConnectKeyReleaseEvent(func(e *gui.QKeyEvent) {
+		h, err := strconv.Atoi(heightInput.Text())
+		if err != nil {
+			return
+		}
+		w0 := float64(src.Width())
+		h0 := float64(src.Height())
+		w := float64(h) * w0 / h0
+		widthInput.SetText(strconv.Itoa(int(w)))
+	})
+
+	okBtn.ConnectClicked(func(b bool) {
+		w, err := strconv.Atoi(widthInput.Text())
+		if err != nil {
+			res = src
+		}
+		h, err := strconv.Atoi(heightInput.Text())
+		if err != nil {
+			res = src
+		}
+		res = src.Scaled2(w, h, core.Qt__KeepAspectRatioByExpanding, core.Qt__SmoothTransformation)
+		dlg.Hide()
+		dlg.Destroy(true, true)
+	})
+
+	cancelBtn.ConnectClicked(func(b bool) {
+		res = src
+		dlg.Hide()
+		dlg.Destroy(true, true)
+	})
+	dlg.Exec()
+	return
 }
 
 func (s *myWindow) getImageList(html string) []string {
 	r := strings.NewReader(html)
 	bufr := bufio.NewReader(r)
-	regex, err := regexp.Compile(`<img src="([^"]+)" />`)
+	reg1, err := regexp.Compile(`<img[^><]+/>`)
 	if err != nil {
 		//fmt.Println(err)
 		return nil
 	}
-	res := []string{}
+	reg2, err := regexp.Compile(`src="([^"]+)"`)
+	if err != nil {
+		//fmt.Println(err)
+		return nil
+	}
+	imgs := []string{}
 	for line, _, err := bufr.ReadLine(); err == nil; line, _, err = bufr.ReadLine() {
 		line1 := string(line)
-		res1 := regex.FindAllStringSubmatch(line1, -1)
-		for i := 0; i < len(res1); i++ {
-			res = append(res, res1[i][1])
-		}
+		res1 := reg1.FindAllString(line1, -1)
+		imgs = append(imgs, res1...)
 	}
+
+	res := []string{}
+	for _, img := range imgs {
+		res2 := reg2.FindStringSubmatch(img)
+		res = append(res, res2[1])
+	}
+	//fmt.Println(res)
 	return res
 }
 
