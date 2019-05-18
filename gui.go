@@ -532,7 +532,7 @@ func (s *myWindow) selectDiary(idx *core.QModelIndex) {
 		s.editor.Document().SetHtml(s.document.Html)
 		s.editor.Document().SetModified(false)
 	}
-
+	s.tree.SetCurrentIndex(diary.Index())
 }
 
 func (s *myWindow) diaryPopup(idx *core.QModelIndex, e *gui.QMouseEvent) {
@@ -653,6 +653,7 @@ func (s *myWindow) setEditorFuncs() {
 			curDiary.Item = p.TakeChild(pos.Row(), pos.Column())
 			curDiary.Item.SetText(disp1)
 			p.SetChild(pos.Row(), pos.Column(), curDiary.Item)
+			s.tree.SetCurrentIndex(curDiary.Item.Index())
 			s.tree.ResizeColumnToContents(0)
 		}
 
