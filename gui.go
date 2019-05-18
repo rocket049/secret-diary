@@ -636,15 +636,12 @@ func (s *myWindow) setTitle(v string) {
 func (s *myWindow) setEditorFuncs() {
 
 	s.editor.ConnectTextChanged(func() {
-		curDiary.Modified = true
-		v := s.editor.ToPlainText()
-		secs := strings.Index(v, "\n")
-		var disp1 string
-		if secs == -1 {
-			disp1 = v
-		} else {
-			disp1 = fmt.Sprintf("%s-%s", curDiary.Day, v[:secs])
+		if curDiary.Item == nil {
+			return
 		}
+		curDiary.Modified = true
+		disp1 := curDiary.Day + "-" + s.editor.Document().FirstBlock().Text()
+		fmt.Println(disp1)
 
 		disp0 := curDiary.Item.Text()
 		if disp0 != disp1 {
