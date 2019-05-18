@@ -116,6 +116,24 @@ func (s *myWindow) setMenuBar() {
 		t.AppendColumns(1)
 	})
 
+	removeRow := menu.AddAction(T("Remove Row"))
+	removeRow.ConnectTriggered(func(b bool) {
+		t, c := s.getTable()
+		if t == nil {
+			return
+		}
+		t.RemoveRows(c.Row(), 1)
+	})
+
+	removeCol := menu.AddAction(T("Remove Column"))
+	removeCol.ConnectTriggered(func(b bool) {
+		t, c := s.getTable()
+		if t == nil {
+			return
+		}
+		t.RemoveColumns(c.Column(), 1)
+	})
+
 	menu = menubar.AddMenu2(T("Help"))
 
 	about := menu.AddAction(T("About"))

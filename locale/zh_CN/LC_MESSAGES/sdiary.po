@@ -204,9 +204,6 @@ msgstr "字体"
 msgid "CurrentFont"
 msgstr "当前字体"
 
-msgid "New Table"
-msgstr "新建表格"
-
 msgid "Insert Row"
 msgstr "插入行"
 
@@ -218,3 +215,9 @@ msgstr "插入列"
 
 msgid "Append Column"
 msgstr "追加列"
+
+msgid "Remove Row"
+msgstr "删除行"
+
+msgid "Remove Column"
+msgstr "删除列"
