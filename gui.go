@@ -75,6 +75,47 @@ func (s *myWindow) setMenuBar() {
 		s.updatePwd()
 	})
 
+	menu = menubar.AddMenu2(T("Table"))
+
+	newTable := menu.AddAction(T("Insert Table"))
+	newTable.ConnectTriggered(func(b bool) {
+		s.insertTable()
+	})
+
+	addPreRow := menu.AddAction(T("Insert Row"))
+	addPreRow.ConnectTriggered(func(b bool) {
+		t, c := s.getTable()
+		if t == nil {
+			return
+		}
+		t.InsertRows(c.Row(), 1)
+	})
+	appendRow := menu.AddAction(T("Append Row"))
+	appendRow.ConnectTriggered(func(b bool) {
+		t, _ := s.getTable()
+		if t == nil {
+			return
+		}
+		t.AppendRows(1)
+	})
+
+	addPreCol := menu.AddAction(T("Insert Column"))
+	addPreCol.ConnectTriggered(func(b bool) {
+		t, c := s.getTable()
+		if t == nil {
+			return
+		}
+		t.InsertColumns(c.Column(), 1)
+	})
+	appendCol := menu.AddAction(T("Append Column"))
+	appendCol.ConnectTriggered(func(b bool) {
+		t, _ := s.getTable()
+		if t == nil {
+			return
+		}
+		t.AppendColumns(1)
+	})
+
 	menu = menubar.AddMenu2(T("Help"))
 
 	about := menu.AddAction(T("About"))

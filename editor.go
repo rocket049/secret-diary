@@ -409,3 +409,19 @@ func (s *myWindow) textAlign(n int) {
 
 	}
 }
+
+func (s *myWindow) getTable() (t *gui.QTextTable, cell *gui.QTextTableCell) {
+	cursor := s.editor.TextCursor()
+	blk := s.editor.Document().FindBlock(cursor.Position())
+	for _, frame := range blk.Document().RootFrame().ChildFrames() {
+		//fmt.Println("table cell:", frame.FrameFormat().IsTableCellFormat(), "table:", frame.FrameFormat().IsTableFormat())
+		if frame.FrameFormat().IsTableFormat() {
+			table := gui.NewQTextTableFromPointer(frame.Pointer())
+			cell := table.CellAt2(cursor.Position())
+			//fmt.Println(cell.Row(), cell.Column())
+			return table, cell
+		}
+	}
+
+	return nil, nil
+}
