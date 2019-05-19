@@ -30,6 +30,14 @@ func (s *myWindow) setHeader(level int) {
 	s.mergeFormatOnLineOrSelection(cfmt)
 }
 
+func (s *myWindow) setStandard() {
+	var cfmt = gui.NewQTextCharFormat()
+	cfmt.SetFontPointSize(14)
+	cfmt.SetForeground(gui.NewQBrush3(gui.NewQColor2(core.Qt__black), core.Qt__SolidPattern))
+
+	s.mergeFormatOnLineOrSelection(cfmt)
+}
+
 func (s *myWindow) textStyle(styleIndex int) {
 	var cursor = s.editor.TextCursor()
 

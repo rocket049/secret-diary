@@ -315,11 +315,12 @@ func (s *myWindow) Create(app *widgets.QApplication) {
 
 	grid.AddWidget(s.tree, 0, 0, 0)
 
-	s.editor = widgets.NewQTextEdit(s.window)
-	s.editor.SetSizePolicy2(widgets.QSizePolicy__Expanding, widgets.QSizePolicy__Expanding)
-	s.editor.SetTabChangesFocus(false)
+	// s.editor = widgets.NewQTextEdit(s.window)
+	// s.editor.SetSizePolicy2(widgets.QSizePolicy__Expanding, widgets.QSizePolicy__Expanding)
+	// s.editor.SetTabChangesFocus(false)
+	editor := s.createEditor()
 
-	grid.AddWidget(s.editor, 0, 1, 0)
+	grid.AddWidget(editor, 0, 1, 0)
 
 	grid.SetAlign(core.Qt__AlignTop)
 
@@ -346,6 +347,39 @@ func (s *myWindow) Create(app *widgets.QApplication) {
 		s.db.Close()
 	})
 	s.window.ShowMaximized()
+}
+
+func (s *myWindow) createEditor() widgets.QWidget_ITF {
+	scrollarea := widgets.NewQScrollArea(s.window)
+	scrollarea.SetHorizontalScrollBarPolicy(core.Qt__ScrollBarAsNeeded)
+	scrollarea.SetVerticalScrollBarPolicy(core.Qt__ScrollBarAsNeeded)
+	scrollarea.SetAlignment(core.Qt__AlignCenter)
+	scrollarea.SetSizePolicy2(widgets.QSizePolicy__Expanding, widgets.QSizePolicy__Expanding)
+	frame := widgets.NewQFrame(s.window, core.Qt__Widget)
+	grid := widgets.NewQGridLayout2()
+	s.editor = widgets.NewQTextEdit(s.window)
+	s.editor.SetSizePolicy2(widgets.QSizePolicy__Fixed, widgets.QSizePolicy__Expanding)
+	s.editor.SetTabChangesFocus(false)
+	s.editor.SetFontPointSize(14)
+
+	font := s.editor.Font()
+	mtr := gui.NewQFontMetrics(font)
+	width := mtr.Height() * 40
+	s.editor.SetTabStopWidth(mtr.Height() * 2)
+	s.editor.SetFixedWidth(width)
+	s.editor.SetSizePolicy2(widgets.QSizePolicy__Fixed, widgets.QSizePolicy__Expanding)
+
+	scrollarea.ConnectResizeEvent(func(e *gui.QResizeEvent) {
+		fmt.Println(e.Size().Height(), scrollarea.Height())
+
+		frame.SetFixedSize(core.NewQSize2(width, scrollarea.Geometry().Height()))
+	})
+
+	grid.AddWidget(s.editor, 0, 0, 0)
+	frame.SetLayout(grid)
+	scrollarea.SetWidget(frame)
+
+	return scrollarea
 }
 
 func (s *myWindow) saveCurDiary() {
@@ -617,9 +651,11 @@ func (s *myWindow) setTitle(v string) {
 	cfmt.SetFontPointSize(18)
 	cfmt.SetForeground(gui.NewQBrush3(gui.NewQColor2(core.Qt__blue), core.Qt__SolidPattern))
 
+	s.editor.MergeCurrentCharFormat(cfmt)
+	s.editor.SetAlignment(core.Qt__AlignHCenter)
+
 	cursor := s.editor.TextCursor()
 	cursor.InsertText(v)
-	s.mergeFormatOnLineOrSelection(cfmt)
 
 	//cursor.MovePosition(gui.QTextCursor__End, gui.QTextCursor__KeepAnchor, 0)
 	cursor.InsertText("\n")
@@ -628,6 +664,9 @@ func (s *myWindow) setTitle(v string) {
 	afmt.SetFontPointSize(14)
 
 	s.mergeFormatOnLineOrSelection(afmt)
+
+	s.editor.SetAlignment(core.Qt__AlignLeft | core.Qt__AlignAbsolute)
+
 	cursor.InsertText("\n")
 
 	//cursor.EndEditBlock()
@@ -640,7 +679,7 @@ func (s *myWindow) setEditorFuncs() {
 			return
 		}
 		curDiary.Modified = true
-		disp1 := curDiary.Day + "-" + s.editor.Document().FirstBlock().Text()
+		disp1 := curDiary.Day + "-" + strings.TrimSpace(s.editor.Document().FirstBlock().Text())
 		fmt.Println(disp1)
 
 		disp0 := curDiary.Item.Text()
@@ -672,13 +711,14 @@ func (s *myWindow) saveLastUser(name string) {
 	ioutil.WriteFile(path1, []byte(name), 0644)
 }
 
-func (s *myWindow) mergeFormatOnLineOrSelection(format *gui.QTextCharFormat) {
+func (s *myWindow) mergeFormatOnLineOrSelection(format *gui.QTextCharFormat) *gui.QTextCursor {
 	var cursor = s.editor.TextCursor()
 	if !cursor.HasSelection() {
 		cursor.Select(gui.QTextCursor__LineUnderCursor)
 	}
 	cursor.MergeCharFormat(format)
 	s.editor.MergeCurrentCharFormat(format)
+	return cursor
 }
 
 func (s *myWindow) rename() {
