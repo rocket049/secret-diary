@@ -206,10 +206,21 @@ func (s *myWindow) scaleImage(src *gui.QImage) (res *gui.QImage) {
 
 	width := widgets.NewQLabel2(strconv.Itoa(src.Width())+" =>", dlg, core.Qt__Widget)
 	grid.AddWidget(width, 0, 0, 0)
+	scaledW := src.Width()
+	scaledH := src.Height()
+	delta := 30
+	if scaledW > s.editor.Width()-delta {
+		scaledW = s.editor.Geometry().Width() - delta
+		scaledH = int(float64(src.Height()) * float64(scaledW) / float64(src.Width()))
+	}
+	wValidor := gui.NewQIntValidator(dlg)
+	wValidor.SetRange(10, scaledW)
+	hValidor := gui.NewQIntValidator(dlg)
+	hValidor.SetRange(10, scaledH)
 
 	widthInput := widgets.NewQLineEdit(dlg)
-	widthInput.SetText(strconv.Itoa(src.Width()))
-	widthInput.SetValidator(gui.NewQIntValidator(dlg))
+	widthInput.SetText(strconv.Itoa(scaledW))
+	widthInput.SetValidator(wValidor)
 	grid.AddWidget(widthInput, 0, 1, 0)
 
 	height := widgets.NewQLabel2(strconv.Itoa(src.Height())+" =>", dlg, core.Qt__Widget)
@@ -217,8 +228,8 @@ func (s *myWindow) scaleImage(src *gui.QImage) (res *gui.QImage) {
 	grid.AddWidget(height, 1, 0, 0)
 
 	heightInput := widgets.NewQLineEdit(dlg)
-	heightInput.SetText(strconv.Itoa(src.Height()))
-	heightInput.SetValidator(gui.NewQIntValidator(dlg))
+	heightInput.SetText(strconv.Itoa(scaledH))
+	heightInput.SetValidator(hValidor)
 	grid.AddWidget(heightInput, 1, 1, 0)
 
 	btb := widgets.NewQGridLayout(nil)
@@ -273,6 +284,7 @@ func (s *myWindow) scaleImage(src *gui.QImage) (res *gui.QImage) {
 		dlg.Hide()
 		dlg.Destroy(true, true)
 	})
+
 	dlg.Exec()
 	return
 }

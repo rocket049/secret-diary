@@ -138,7 +138,7 @@ func (s *myWindow) setMenuBar() {
 
 	about := menu.AddAction(T("About"))
 	about.ConnectTriggered(func(b bool) {
-		s.showMsg(T("About"), T("Copy Right: Fu Huizhong <fuhuizn@163.com>\nSecurity Diary Tool.\nCrypto with AES256"))
+		s.showMsg(T("About"), T("Copy Right: Fu Huizhong <fuhuizn@163.com>\nSecurity Diary Tool.\nCrypto with AES256")+"\nHomepage: https://github.com/rocket049/secret-diary")
 	})
 
 	bak := menu.AddAction(T("Backup"))
@@ -352,7 +352,7 @@ func (s *myWindow) Create(app *widgets.QApplication) {
 func (s *myWindow) createEditor() widgets.QWidget_ITF {
 	scrollarea := widgets.NewQScrollArea(s.window)
 	scrollarea.SetHorizontalScrollBarPolicy(core.Qt__ScrollBarAsNeeded)
-	scrollarea.SetVerticalScrollBarPolicy(core.Qt__ScrollBarAsNeeded)
+	scrollarea.SetVerticalScrollBarPolicy(core.Qt__ScrollBarAlwaysOn)
 	scrollarea.SetAlignment(core.Qt__AlignCenter)
 	scrollarea.SetSizePolicy2(widgets.QSizePolicy__Expanding, widgets.QSizePolicy__Expanding)
 	frame := widgets.NewQFrame(s.window, core.Qt__Widget)
@@ -361,6 +361,7 @@ func (s *myWindow) createEditor() widgets.QWidget_ITF {
 	s.editor.SetSizePolicy2(widgets.QSizePolicy__Fixed, widgets.QSizePolicy__Expanding)
 	s.editor.SetTabChangesFocus(false)
 	s.editor.SetFontPointSize(14)
+	s.editor.SetReadOnly(true)
 
 	font := s.editor.Font()
 	mtr := gui.NewQFontMetrics(font)
@@ -370,9 +371,7 @@ func (s *myWindow) createEditor() widgets.QWidget_ITF {
 	s.editor.SetSizePolicy2(widgets.QSizePolicy__Fixed, widgets.QSizePolicy__Expanding)
 
 	scrollarea.ConnectResizeEvent(func(e *gui.QResizeEvent) {
-		fmt.Println(e.Size().Height(), scrollarea.Height())
-
-		frame.SetFixedSize(core.NewQSize2(width, scrollarea.Geometry().Height()))
+		frame.SetFixedSize(core.NewQSize2(width+30, scrollarea.Geometry().Height()))
 	})
 
 	grid.AddWidget(s.editor, 0, 0, 0)
@@ -438,6 +437,8 @@ func (s *myWindow) addDiary(yearMonth, day, title string) {
 	curDiary.Item = diary
 	curDiary.Day = day
 	curDiary.YearMonth = yearMonth
+
+	s.editor.SetReadOnly(false)
 
 	s.setTitle(title)
 
@@ -567,6 +568,7 @@ func (s *myWindow) selectDiary(idx *core.QModelIndex) {
 		s.editor.Document().SetModified(false)
 	}
 	s.tree.SetCurrentIndex(diary.Index())
+	s.editor.SetReadOnly(false)
 }
 
 func (s *myWindow) diaryPopup(idx *core.QModelIndex, e *gui.QMouseEvent) {
@@ -680,7 +682,7 @@ func (s *myWindow) setEditorFuncs() {
 		}
 		curDiary.Modified = true
 		disp1 := curDiary.Day + "-" + strings.TrimSpace(s.editor.Document().FirstBlock().Text())
-		fmt.Println(disp1)
+		//fmt.Println(disp1)
 
 		disp0 := curDiary.Item.Text()
 		if disp0 != disp1 {
@@ -740,7 +742,7 @@ func (s *myWindow) rename() {
 
 	okAct.ConnectClicked(func(checked bool) {
 		ret := widgets.QMessageBox_Question(dlg, T("Confirm"), T("Are you sure?"), widgets.QMessageBox__Yes|widgets.QMessageBox__Cancel, widgets.QMessageBox__Yes)
-		fmt.Println(ret)
+		//fmt.Println(ret)
 		if ret == widgets.QMessageBox__Yes {
 			if len(nameInput.Text()) == 0 {
 				return
@@ -958,6 +960,7 @@ func (s *myWindow) showMsg(title, msg string) {
 	dlg := widgets.NewQMessageBox(s.window)
 	dlg.SetWindowTitle(title)
 	dlg.SetText(msg)
+
 	dlg.Exec()
 	dlg.Destroy(true, true)
 }

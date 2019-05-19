@@ -221,3 +221,6 @@ msgstr "删除行"
 
 msgid "Remove Column"
 msgstr "删除列"
+
+msgid "Are you sure?"
+msgstr "是否确定?"
