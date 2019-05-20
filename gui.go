@@ -702,49 +702,66 @@ func (s *myWindow) setEditorFuncs() {
 
 	})
 
-	s.editor.ConnectMouseReleaseEvent(func(e *gui.QMouseEvent) {
-		cursor := s.editor.TextCursor()
-		if cursor == nil {
-			return
+	s.editor.ConnectContextMenuEvent(func(e *gui.QContextMenuEvent) {
+
+		menu := s.editor.CreateStandardContextMenu()
+
+		imgUrl := s.getSelectedImage()
+		if len(imgUrl) > 0 {
+			//addaction export image
+			act := menu.AddAction(T("Export Image As..."))
+			act.ConnectTriggered(func(b bool) {
+				ext := filepath.Ext(imgUrl)
+				filter := fmt.Sprintf("%s Image (*%s)", ext, ext)
+				filename := widgets.QFileDialog_GetSaveFileName(s.window, T("Export Image As..."), ".", filter, filter, 0)
+				if strings.HasSuffix(filename, ext) == false {
+					filename = filename + ext
+				}
+
+				if len(filename) > 0 {
+					ioutil.WriteFile(filename, s.document.Images[imgUrl], 0644)
+				}
+			})
 		}
 
-		fragment := cursor.Selection()
-		if fragment.IsEmpty() {
-			return
-		}
-
-		html := fragment.ToHtml(core.NewQByteArray2("UTF-8", 5))
-		reg1, err := regexp.Compile(`<!--StartFragment-->.+<!--EndFragment-->`)
-		if err != nil {
-			log.Println(err)
-			return
-		}
-		html = reg1.FindString(html)
-
-		reg2, err := regexp.Compile(`<img src="([^"]+)" />`)
-		if err != nil {
-			log.Println(err)
-			return
-		}
-
-		urls := reg2.FindAllStringSubmatch(html, -1)
-
-		if len(urls) != 1 {
-			return
-		}
-
-		url := urls[0][1]
-
-		filter := fmt.Sprintf("%s Image (*%s)", filepath.Ext(url), filepath.Ext(url))
-		fmt.Println("click:", cursor.Position(), url, filter)
-
-		filename := widgets.QFileDialog_GetSaveFileName(s.window, T("Export Image As..."), ".", filter, filter, 0)
-
-		if len(filename) > 0 {
-			ioutil.WriteFile(filename, s.document.Images[url], 0644)
-		}
-
+		menu.Popup(e.GlobalPos(), nil)
 	})
+
+}
+
+//return url or ""
+func (s *myWindow) getSelectedImage() string {
+	cursor := s.editor.TextCursor()
+	if cursor == nil {
+		return ""
+	}
+
+	fragment := cursor.Selection()
+	if fragment.IsEmpty() {
+		return ""
+	}
+
+	html := fragment.ToHtml(core.NewQByteArray2("UTF-8", 5))
+	reg1, err := regexp.Compile(`<!--StartFragment-->.+<!--EndFragment-->`)
+	if err != nil {
+		log.Println(err)
+		return ""
+	}
+	html = reg1.FindString(html)
+
+	reg2, err := regexp.Compile(`<img src="([^"]+)" />`)
+	if err != nil {
+		log.Println(err)
+		return ""
+	}
+
+	urls := reg2.FindAllStringSubmatch(html, -1)
+
+	if len(urls) != 1 {
+		return ""
+	}
+
+	return urls[0][1]
 }
 
 func (s *myWindow) lastUser() string {
