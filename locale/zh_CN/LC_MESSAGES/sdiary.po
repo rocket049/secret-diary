@@ -224,3 +224,6 @@ msgstr "删除列"
 
 msgid "Are you sure?"
 msgstr "是否确定?"
+
+msgid "Export Image As..."
+msgstr "导出图片..."

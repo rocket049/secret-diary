@@ -6,6 +6,8 @@ import (
 	"log"
 	"os"
 	"path"
+	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -346,7 +348,7 @@ func (s *myWindow) Create(app *widgets.QApplication) {
 	s.window.ConnectCloseEvent(func(e *gui.QCloseEvent) {
 		s.db.Close()
 	})
-	s.window.ShowMaximized()
+	s.window.Show()
 }
 
 func (s *myWindow) createEditor() widgets.QWidget_ITF {
@@ -377,6 +379,8 @@ func (s *myWindow) createEditor() widgets.QWidget_ITF {
 	grid.AddWidget(s.editor, 0, 0, 0)
 	frame.SetLayout(grid)
 	scrollarea.SetWidget(frame)
+
+	s.window.SetMinimumWidth(s.tree.Width() + s.editor.Width() + 100)
 
 	return scrollarea
 }
@@ -649,6 +653,7 @@ func (s *myWindow) setTreeFuncs() {
 
 func (s *myWindow) setTitle(v string) {
 	s.editor.Clear()
+	s.editor.Document().Clear()
 	var cfmt = gui.NewQTextCharFormat()
 	cfmt.SetFontPointSize(18)
 	cfmt.SetForeground(gui.NewQBrush3(gui.NewQColor2(core.Qt__blue), core.Qt__SolidPattern))
@@ -693,6 +698,50 @@ func (s *myWindow) setEditorFuncs() {
 			p.SetChild(pos.Row(), pos.Column(), curDiary.Item)
 			s.tree.SetCurrentIndex(curDiary.Item.Index())
 			s.tree.ResizeColumnToContents(0)
+		}
+
+	})
+
+	s.editor.ConnectMouseReleaseEvent(func(e *gui.QMouseEvent) {
+		cursor := s.editor.TextCursor()
+		if cursor == nil {
+			return
+		}
+
+		fragment := cursor.Selection()
+		if fragment.IsEmpty() {
+			return
+		}
+
+		html := fragment.ToHtml(core.NewQByteArray2("UTF-8", 5))
+		reg1, err := regexp.Compile(`<!--StartFragment-->.+<!--EndFragment-->`)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		html = reg1.FindString(html)
+
+		reg2, err := regexp.Compile(`<img src="([^"]+)" />`)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+
+		urls := reg2.FindAllStringSubmatch(html, -1)
+
+		if len(urls) != 1 {
+			return
+		}
+
+		url := urls[0][1]
+
+		filter := fmt.Sprintf("%s Image (*%s)", filepath.Ext(url), filepath.Ext(url))
+		fmt.Println("click:", cursor.Position(), url, filter)
+
+		filename := widgets.QFileDialog_GetSaveFileName(s.window, T("Export Image As..."), ".", filter, filter, 0)
+
+		if len(filename) > 0 {
+			ioutil.WriteFile(filename, s.document.Images[url], 0644)
 		}
 
 	})
