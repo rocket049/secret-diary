@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/therecipe/qt/gui"
+	"github.com/therecipe/qt/printsupport"
 
 	"github.com/rocket049/gettext-go/gettext"
 
@@ -51,6 +52,7 @@ type myWindow struct {
 	actionTextItalic    *widgets.QAction
 	actionStrikeOut     *widgets.QAction
 	exportEnc           *widgets.QAction
+	exportPdf           *widgets.QAction
 	user                string
 	key                 []byte
 	db                  *myDb
@@ -71,7 +73,19 @@ func (s *myWindow) setMenuBar() {
 	s.exportEnc = menu.AddAction(T("Export Encrypted Diary"))
 	s.exportEnc.SetDisabled(true)
 	s.exportEnc.ConnectTriggered(func(b bool) {
+		s.saveCurDiary()
 		s.exportEncryptedDiary()
+	})
+
+	s.exportPdf = menu.AddAction(T("Export PDF..."))
+	s.exportPdf.SetDisabled(true)
+	s.exportPdf.ConnectTriggered(func(b bool) {
+		s.exportAsPdf()
+	})
+
+	importEnc := menu.AddAction(T("Import Encrypted Diary"))
+	importEnc.ConnectTriggered(func(b bool) {
+		s.importEncryptedDiary()
 	})
 
 	menu = menubar.AddMenu2(T("Table"))
@@ -174,6 +188,8 @@ func (s *myWindow) setToolBar() {
 	})
 
 	act2 := bar.AddAction(T("Save"))
+	act2.SetToolTip(T("Save") + " Ctrl-S")
+	act2.SetShortcut(gui.QKeySequence_FromString("CTRL+s", gui.QKeySequence__NativeText))
 	act2.ConnectTriggered(func(b bool) {
 
 		s.saveCurDiary()
@@ -453,6 +469,7 @@ func (s *myWindow) addDiary(yearMonth, day, title string) {
 
 	s.editor.SetReadOnly(false)
 	s.exportEnc.SetEnabled(true)
+	s.exportPdf.SetEnabled(true)
 
 	s.setTitle(title)
 
@@ -584,6 +601,8 @@ func (s *myWindow) selectDiary(idx *core.QModelIndex) {
 	s.tree.SetCurrentIndex(diary.Index())
 	s.editor.SetReadOnly(false)
 	s.exportEnc.SetEnabled(true)
+	s.exportPdf.SetEnabled(true)
+
 }
 
 func (s *myWindow) diaryPopup(idx *core.QModelIndex, e *gui.QMouseEvent) {
@@ -592,6 +611,8 @@ func (s *myWindow) diaryPopup(idx *core.QModelIndex, e *gui.QMouseEvent) {
 	if diary.AccessibleDescription() != "0" {
 		return
 	}
+	s.selectDiary(idx)
+
 	menu := widgets.NewQMenu(s.tree)
 	item := menu.AddAction(T("Delete"))
 	item.ConnectTriggered(func(checked bool) {
@@ -614,6 +635,10 @@ func (s *myWindow) diaryPopup(idx *core.QModelIndex, e *gui.QMouseEvent) {
 		}
 
 	})
+
+	menu.QWidget.AddAction(s.exportEnc)
+
+	menu.QWidget.AddAction(s.exportPdf)
 
 	menu.Popup(e.GlobalPos(), nil)
 }
@@ -1044,7 +1069,7 @@ func (s *myWindow) exportEncryptedDiary() {
 		return
 	}
 	dlg := widgets.NewQDialog(s.window, core.Qt__Dialog)
-	dlg.SetWindowTitle(T("Export Encrypted Diary..."))
+	dlg.SetWindowTitle(T("Export Encrypted Diary") + "...")
 
 	grid := widgets.NewQGridLayout2()
 
@@ -1112,6 +1137,103 @@ func (s *myWindow) exportEncryptedDiary() {
 
 	dlg.SetLayout(grid)
 	dlg.Exec()
+}
+
+func (s *myWindow) importEncryptedDiary() {
+	//import private format .egf	(encrypted gob file)
+
+	dlg := widgets.NewQDialog(s.window, core.Qt__Dialog)
+	dlg.SetWindowTitle(T("Export Encrypted Diary") + "...")
+
+	grid := widgets.NewQGridLayout2()
+
+	name := widgets.NewQLabel2(T("FileName:"), dlg, core.Qt__Widget)
+	grid.AddWidget(name, 0, 0, 0)
+
+	nameInput := widgets.NewQLineEdit(dlg)
+	grid.AddWidget(nameInput, 0, 1, 0)
+	nameInput.SetPlaceholderText(T("Double click to select..."))
+	nameInput.SetMinimumWidth(240)
+
+	passwd := widgets.NewQLabel2(T("Password:"), dlg, core.Qt__Widget)
+	grid.AddWidget(passwd, 1, 0, 0)
+
+	passwdInput := widgets.NewQLineEdit(dlg)
+	grid.AddWidget(passwdInput, 1, 1, 0)
+	passwdInput.SetEchoMode(widgets.QLineEdit__Password)
+
+	hbox := widgets.NewQHBoxLayout()
+
+	okBtn := widgets.NewQPushButton2(T("OK"), dlg)
+	hbox.AddWidget(okBtn, 1, 0)
+
+	cancelBtn := widgets.NewQPushButton2(T("Cancel"), dlg)
+	hbox.AddWidget(cancelBtn, 1, 0)
+
+	cancelBtn.ConnectClicked(func(b bool) {
+		dlg.Hide()
+		dlg.Destroy(true, true)
+	})
+
+	nameInput.ConnectMouseDoubleClickEvent(func(e *gui.QMouseEvent) {
+		filename := widgets.QFileDialog_GetOpenFileName(dlg, T("Import File..."), ".", "Encrypted Diary .egf (*.egf)", "Encrypted Diary .egf (*.egf)", widgets.QFileDialog__ReadOnly)
+		nameInput.SetText(filename)
+
+	})
+
+	okBtn.ConnectClicked(func(b bool) {
+		if len(passwdInput.Text()) < 4 {
+			return
+		}
+
+		filename := strings.TrimSpace(nameInput.Text())
+		if len(filename) == 0 {
+			return
+		}
+		key := getSha4(passwdInput.Text())
+		data, err := decodeFromPathName(filename, key)
+		if err != nil {
+			return
+		}
+		now := time.Now()
+		s.addDiary(now.Format("2006-01"), now.Format("02"), "")
+
+		_, err = s.getQText(data)
+
+		if err == nil {
+
+			s.editor.SetHtml(s.document.Html)
+			curDiary.Modified = true
+			s.editor.Document().SetModified(true)
+
+			s.saveCurDiary()
+		} else {
+			s.showMsg(T("Error"), err.Error())
+		}
+
+		dlg.Hide()
+		dlg.Destroy(true, true)
+	})
+
+	grid.AddLayout2(hbox, 2, 0, 1, 2, 0)
+
+	dlg.SetLayout(grid)
+	dlg.Exec()
+}
+
+func (s *myWindow) exportAsPdf() {
+	filename := widgets.QFileDialog_GetSaveFileName(s.window, T("Export To..."), ".", "PDF (*.pdf)", "Encrypted Diary (*.pdf)", 0)
+	if !strings.HasSuffix(strings.ToLower(filename), ".pdf") {
+		filename = filename + ".pdf"
+	}
+	var (
+		fileName = filename
+		printer  = printsupport.NewQPrinter(printsupport.QPrinter__HighResolution)
+	)
+	printer.SetOutputFormat(printsupport.QPrinter__PdfFormat)
+	printer.SetOutputFileName(fileName)
+	s.editor.Document().Print(printer)
+	s.setStatusBar(fmt.Sprintf("Exported %v", core.QDir_ToNativeSeparators(fileName)))
 }
 
 func (s *myWindow) showMsg(title, msg string) {

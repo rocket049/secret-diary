@@ -227,3 +227,25 @@ msgstr "是否确定?"
 
 msgid "Export Image As..."
 msgstr "导出图片..."
+
+msgid "Delete"
+msgstr "删除"
+
+msgid "Export To..."
+msgstr "导出为..."
+
+msgid "Import File..."
+msgstr "导入文件..."
+
+msgid "Export Encrypted Diary"
+msgstr "导出加密日记..."
+
+msgid "Import Encrypted Diary"
+msgstr "导入加密日记..."
+
+msgid "Export PDF..."
+msgstr "导出加PDF..."
+
+msgid "FileName:"
+msgstr "文件："
+
