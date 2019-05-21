@@ -50,6 +50,7 @@ type myWindow struct {
 	actionTextUnderline *widgets.QAction
 	actionTextItalic    *widgets.QAction
 	actionStrikeOut     *widgets.QAction
+	exportEnc           *widgets.QAction
 	user                string
 	key                 []byte
 	db                  *myDb
@@ -65,16 +66,12 @@ func (s *myWindow) setMenuBar() {
 	s.document.Images = make(map[string][]byte)
 
 	menubar := s.window.MenuBar()
-	menu := menubar.AddMenu2(T("Manage"))
+	menu := menubar.AddMenu2(T("File"))
 
-	ren := menu.AddAction(T("Rename"))
-	ren.ConnectTriggered(func(b bool) {
-		s.rename()
-	})
-
-	pwdNew := menu.AddAction(T("ModifyPassword"))
-	pwdNew.ConnectTriggered(func(b bool) {
-		s.updatePwd()
+	s.exportEnc = menu.AddAction(T("Export Encrypted Diary"))
+	s.exportEnc.SetDisabled(true)
+	s.exportEnc.ConnectTriggered(func(b bool) {
+		s.exportEncryptedDiary()
 	})
 
 	menu = menubar.AddMenu2(T("Table"))
@@ -134,6 +131,18 @@ func (s *myWindow) setMenuBar() {
 			return
 		}
 		t.RemoveColumns(c.Column(), 1)
+	})
+
+	menu = menubar.AddMenu2(T("Manage"))
+
+	ren := menu.AddAction(T("Rename"))
+	ren.ConnectTriggered(func(b bool) {
+		s.rename()
+	})
+
+	pwdNew := menu.AddAction(T("ModifyPassword"))
+	pwdNew.ConnectTriggered(func(b bool) {
+		s.updatePwd()
 	})
 
 	menu = menubar.AddMenu2(T("Help"))
@@ -443,6 +452,7 @@ func (s *myWindow) addDiary(yearMonth, day, title string) {
 	curDiary.YearMonth = yearMonth
 
 	s.editor.SetReadOnly(false)
+	s.exportEnc.SetEnabled(true)
 
 	s.setTitle(title)
 
@@ -573,6 +583,7 @@ func (s *myWindow) selectDiary(idx *core.QModelIndex) {
 	}
 	s.tree.SetCurrentIndex(diary.Index())
 	s.editor.SetReadOnly(false)
+	s.exportEnc.SetEnabled(true)
 }
 
 func (s *myWindow) diaryPopup(idx *core.QModelIndex, e *gui.QMouseEvent) {
@@ -1020,6 +1031,87 @@ func (s *myWindow) login() {
 	})
 
 	dlg.Show()
+}
+
+func (s *myWindow) exportEncryptedDiary() {
+	//export private format .egf	(encrypted gob file)
+	idx := s.tree.CurrentIndex()
+	if idx == nil {
+		return
+	}
+	item := s.model.ItemFromIndex(idx)
+	if item == nil {
+		return
+	}
+	dlg := widgets.NewQDialog(s.window, core.Qt__Dialog)
+	dlg.SetWindowTitle(T("Export Encrypted Diary..."))
+
+	grid := widgets.NewQGridLayout2()
+
+	name := widgets.NewQLabel2(T("FileName:"), dlg, core.Qt__Widget)
+	grid.AddWidget(name, 0, 0, 0)
+
+	nameInput := widgets.NewQLineEdit(dlg)
+	grid.AddWidget(nameInput, 0, 1, 0)
+	nameInput.SetPlaceholderText(T("Double click to select..."))
+	nameInput.SetMinimumWidth(240)
+
+	passwd := widgets.NewQLabel2(T("Password:"), dlg, core.Qt__Widget)
+	grid.AddWidget(passwd, 1, 0, 0)
+
+	passwdInput := widgets.NewQLineEdit(dlg)
+	grid.AddWidget(passwdInput, 1, 1, 0)
+	passwdInput.SetEchoMode(widgets.QLineEdit__Password)
+	passwdInput.SetPlaceholderText(T("Length Must >= 4"))
+
+	hbox := widgets.NewQHBoxLayout()
+
+	okBtn := widgets.NewQPushButton2(T("OK"), dlg)
+	hbox.AddWidget(okBtn, 1, 0)
+
+	cancelBtn := widgets.NewQPushButton2(T("Cancel"), dlg)
+	hbox.AddWidget(cancelBtn, 1, 0)
+
+	cancelBtn.ConnectClicked(func(b bool) {
+		dlg.Hide()
+		dlg.Destroy(true, true)
+	})
+
+	nameInput.ConnectMouseDoubleClickEvent(func(e *gui.QMouseEvent) {
+		filename := widgets.QFileDialog_GetSaveFileName(dlg, T("Export To..."), ".", "Encrypted Diary (*.egf)", "Encrypted Diary (*.egf)", 0)
+		if strings.HasSuffix(strings.ToLower(filename), ".egf") {
+			nameInput.SetText(filename)
+		} else {
+			nameInput.SetText(filename + ".egf")
+		}
+
+	})
+
+	okBtn.ConnectClicked(func(b bool) {
+		if len(passwdInput.Text()) < 4 {
+			return
+		}
+
+		filename := strings.TrimSpace(nameInput.Text())
+		if len(filename) == 0 {
+			return
+		}
+		key := getSha4(passwdInput.Text())
+		data := s.getRichText()
+		err := encodeToPathName(data, filename, key)
+		if err != nil {
+			s.showMsg(T("Error"), err.Error())
+		} else {
+			s.showMsg(T("Success"), filename)
+		}
+		dlg.Hide()
+		dlg.Destroy(true, true)
+	})
+
+	grid.AddLayout2(hbox, 2, 0, 1, 2, 0)
+
+	dlg.SetLayout(grid)
+	dlg.Exec()
 }
 
 func (s *myWindow) showMsg(title, msg string) {

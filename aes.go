@@ -130,3 +130,51 @@ func decodeFromFile(filename string, key []byte) ([]byte, error) {
 	_, err = io.Copy(res, rd)
 	return res.Bytes(), err
 }
+
+func encodeToPathName(data []byte, filename string, key []byte) error {
+	dataPath := filename
+	fp, err := os.Create(dataPath)
+	if err != nil {
+		return err
+	}
+	defer fp.Close()
+
+	aesBlock, err := aes.NewCipher(key)
+	if err != nil {
+		return err
+	}
+	iv := make([]byte, aesBlock.BlockSize())
+	io.ReadFull(rand.Reader, iv)
+	_, err = fp.Write(iv)
+	if err != nil {
+		return err
+	}
+	aesEncoder := cipher.NewCTR(aesBlock, iv)
+	wr := cipher.StreamWriter{S: aesEncoder, W: fp}
+	_, err = wr.Write(data)
+	return err
+}
+
+func decodeFromPathName(filename string, key []byte) ([]byte, error) {
+	dataPath := filename
+	fp, err := os.Open(dataPath)
+	if err != nil {
+		return nil, err
+	}
+	defer fp.Close()
+
+	aesBlock, err := aes.NewCipher(key)
+	if err != nil {
+		return nil, err
+	}
+	iv := make([]byte, aesBlock.BlockSize())
+	_, err = io.ReadFull(fp, iv)
+	if err != nil {
+		return nil, err
+	}
+	aesStream := cipher.NewCTR(aesBlock, iv)
+	rd := cipher.StreamReader{S: aesStream, R: fp}
+	res := bytes.NewBufferString("")
+	_, err = io.Copy(res, rd)
+	return res.Bytes(), err
+}
