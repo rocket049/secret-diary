@@ -249,3 +249,6 @@ msgstr "导出加PDF..."
 msgid "FileName:"
 msgstr "文件："
 
+msgid "File"
+msgstr "文件"
+
