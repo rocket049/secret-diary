@@ -263,6 +263,12 @@ func (s *myWindow) setToolBar() {
 		s.textBgColor()
 	})
 
+	icon = gui.NewQIcon5(":/qml/icons/draw-eraser.png")
+	actionClear := bar.AddAction2(icon, T("Clear Line Format..."))
+	actionClear.ConnectTriggered(func(checked bool) {
+		s.clearFormatAtCursor()
+	})
+
 	s.addJustifyActions(bar)
 
 	comboStyle := widgets.NewQComboBox(bar)

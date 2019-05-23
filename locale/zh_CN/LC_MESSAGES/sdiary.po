@@ -252,3 +252,6 @@ msgstr "文件："
 msgid "File"
 msgstr "文件"
 
+msgid "Clear Line Format..."
+msgstr "清除本行格式"
+

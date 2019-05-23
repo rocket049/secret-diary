@@ -445,3 +445,25 @@ func (s *myWindow) getTable() (t *gui.QTextTable, cell *gui.QTextTableCell) {
 
 	return nil, nil
 }
+
+func (s *myWindow) clearFormatAtCursor() {
+	cursor := s.editor.TextCursor()
+	cursor.Select(gui.QTextCursor__BlockUnderCursor)
+	text := cursor.Selection().ToPlainText()
+	cursor.RemoveSelectedText()
+
+	block := cursor.Block()
+	cfmt := block.CharFormat()
+	cfmt.ClearBackground()
+	cfmt.ClearForeground()
+	cfmt.SetFontUnderline(false)
+	cfmt.SetFontWeight(int(gui.QFont__Normal))
+	cfmt.SetFontPointSize(14)
+	cfmt.SetFontItalic(false)
+	cfmt.SetFontStrikeOut(false)
+	cursor.MergeCharFormat(cfmt)
+	s.editor.MergeCurrentCharFormat(cfmt)
+
+	cursor.InsertText(text)
+
+}
