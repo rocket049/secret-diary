@@ -4,6 +4,12 @@
 兼容 `linux/windows`。
 支持语言：中文、英语
 
+### ChangeLog
+
+[At github](https://github.com/rocket049/secret-diary/releases)
+
+[码云上的](https://gitee.com/rocket049/secret-diary/releases)
+
 # 加密算法说明
 
 ### 登陆验证算法
