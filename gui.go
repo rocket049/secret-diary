@@ -1121,6 +1121,12 @@ func (s *myWindow) login() {
 		s.app.Quit()
 	})
 
+	dlg.ConnectCloseEvent(func(e *gui.QCloseEvent) {
+		dlg.Destroy(true, true)
+		s.window.Destroy(true, true)
+		s.app.Quit()
+	})
+
 	dlg.ConnectHideEvent(func(e *gui.QHideEvent) {
 		//log.Println("load list")
 		s.addYearMonthsFromDb()
