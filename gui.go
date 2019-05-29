@@ -47,6 +47,7 @@ type myWindow struct {
 	tree                *widgets.QTreeView
 	model               *gui.QStandardItemModel
 	editor              *widgets.QTextEdit
+	comboAttachs        *widgets.QComboBox
 	actionTextBold      *widgets.QAction
 	actionTextUnderline *widgets.QAction
 	actionTextItalic    *widgets.QAction
@@ -302,6 +303,18 @@ func (s *myWindow) setToolBar() {
 		s.insertTable()
 	})
 
+	attach := bar.AddAction(T("Attach..."))
+	attach.SetToolTip(T("Append Attachments"))
+	attach.ConnectTriggered(func(b bool) {
+		filename := widgets.QFileDialog_GetOpenFileName(s.window, T("Seclect File"), ".", "All (*)", "All (*)", widgets.QFileDialog__ReadOnly)
+		if s.addAttachment(filename) {
+			s.showAttachList()
+			s.editor.Document().SetModified(true)
+			curDiary.Modified = true
+		}
+
+	})
+
 	font := bar.AddAction(T("Font"))
 	font.SetToolTip(T("CurrentFont"))
 	font.ConnectTriggered(func(b bool) {
@@ -320,6 +333,58 @@ func (s *myWindow) setToolBar() {
 func (s *myWindow) setStatusBar(msg string) {
 	bar := s.window.StatusBar()
 	bar.ShowMessage(msg, 20000)
+}
+
+func (s *myWindow) setupComboAttachs() *widgets.QHBoxLayout {
+	hbox := widgets.NewQHBoxLayout()
+	s.comboAttachs = widgets.NewQComboBox(s.window)
+	s.comboAttachs.SetSizePolicy2(widgets.QSizePolicy__Expanding, widgets.QSizePolicy__Fixed)
+	s.comboAttachs.AddItems([]string{T("-- Selected Attachments --")})
+	btn := widgets.NewQPushButton2(T("Export As..."), s.window)
+	btn.SetSizePolicy2(widgets.QSizePolicy__Fixed, widgets.QSizePolicy__Fixed)
+	hbox.AddWidget(s.comboAttachs, 1, 0)
+	hbox.AddWidget(btn, 1, 0)
+
+	btn.ConnectClicked(func(b bool) {
+		idx := s.comboAttachs.CurrentIndex()
+		if idx == 0 {
+			return
+		}
+		idx -= 1
+		dlg := widgets.NewQFileDialog(s.window, core.Qt__Dialog)
+		filename := dlg.GetSaveFileName(s.window, T("Save File"), s.document.Attachments[idx].Name, "All (*)", "All (*)", 0)
+		if len(filename) > 0 {
+			ioutil.WriteFile(filename, s.document.Attachments[idx].Data, 0644)
+		}
+
+	})
+
+	return hbox
+}
+
+func (s *myWindow) showAttachList() {
+	list := []string{T("-- Selected Attachments --")}
+	for _, v := range s.document.Attachments {
+		list = append(list, v.Name)
+	}
+	s.comboAttachs.Clear()
+	s.comboAttachs.AddItems(list)
+}
+
+func (s *myWindow) clearAttachs() {
+	s.comboAttachs.Clear()
+	s.comboAttachs.AddItems([]string{T("-- Selected Attachments --")})
+}
+
+func (s *myWindow) addAttachment(filename string) bool {
+	name := filepath.Base(filename)
+	data, err := ioutil.ReadFile(filename)
+	if err != nil {
+		log.Println(err)
+		return false
+	}
+	s.document.Attachments = append(s.document.Attachments, attachmentFile{Name: name, Data: data})
+	return true
 }
 
 func (s *myWindow) Create(app *widgets.QApplication) {
@@ -346,14 +411,14 @@ func (s *myWindow) Create(app *widgets.QApplication) {
 
 	s.tree.SetModel(s.model)
 
-	grid.AddWidget(s.tree, 0, 0, 0)
+	grid.AddWidget3(s.tree, 0, 0, 2, 1, 0)
 
-	// s.editor = widgets.NewQTextEdit(s.window)
-	// s.editor.SetSizePolicy2(widgets.QSizePolicy__Expanding, widgets.QSizePolicy__Expanding)
-	// s.editor.SetTabChangesFocus(false)
 	editor := s.createEditor()
 
-	grid.AddWidget(editor, 0, 1, 0)
+	grid.AddWidget3(editor, 0, 1, 1, 1, 0)
+
+	comboBox := s.setupComboAttachs()
+	grid.AddLayout(comboBox, 1, 1, 0)
 
 	grid.SetAlign(core.Qt__AlignTop)
 
@@ -600,8 +665,9 @@ func (s *myWindow) selectDiary(idx *core.QModelIndex) {
 		curDiary.YearMonth = diary.Parent().Text()
 		vs := strings.Index(diary.Text(), "-")
 		curDiary.Day = diary.Text()[:vs]
-
 		s.editor.Document().SetHtml(s.document.Html)
+
+		s.showAttachList()
 		s.editor.Document().SetModified(false)
 	}
 	s.tree.SetCurrentIndex(diary.Index())

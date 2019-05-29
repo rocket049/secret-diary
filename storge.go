@@ -8,15 +8,22 @@ import (
 	"github.com/therecipe/qt/gui"
 )
 
+type attachmentFile struct {
+	Name string
+	Data []byte
+}
+
 type qtextFormat struct {
-	Html   string
-	Images map[string][]byte
+	Html        string
+	Images      map[string][]byte
+	Attachments []attachmentFile
 }
 
 func (s *myWindow) getRichText() []byte {
 	var data qtextFormat
 	data.Html = s.editor.ToHtml()
 	data.Images = s.getImagesMap(data.Html)
+	data.Attachments = s.document.Attachments
 
 	buf := bytes.NewBufferString("")
 	encoder := gob.NewEncoder(buf)
@@ -30,6 +37,8 @@ func (s *myWindow) getRichText() []byte {
 func (s *myWindow) getQText(data []byte) (*qtextFormat, error) {
 	buf := bytes.NewReader(data)
 	decoder := gob.NewDecoder(buf)
+	s.document.Images = make(map[string][]byte)
+	s.document.Attachments = []attachmentFile{}
 	err := decoder.Decode(&s.document)
 	if err == nil {
 		s.loadImgResources(s.document.Images)

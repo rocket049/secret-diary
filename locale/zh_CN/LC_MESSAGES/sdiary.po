@@ -255,3 +255,15 @@ msgstr "文件"
 msgid "Clear Line Format..."
 msgstr "清除本行格式"
 
+msgid "Save File"
+msgstr "保存文件"
+
+msgid "-- Selected Attachments --"
+msgstr "-- 选择附件 --"
+
+msgid "Export As..."
+msgstr "导出"
+
+msgid "Attach..."
+msgstr "附件"
+
