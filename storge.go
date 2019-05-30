@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/gob"
+	"reflect"
 
 	"github.com/therecipe/qt/core"
 	"github.com/therecipe/qt/gui"
@@ -69,4 +70,39 @@ func (s *myWindow) loadImgResources(imgs map[string][]byte) {
 
 		s.editor.Document().AddResource(int(gui.QTextDocument__ImageResource), uri, img.ToVariant())
 	}
+}
+
+func (s *myWindow) removeCurAttachment() {
+	idx := s.comboAttachs.CurrentIndex()
+	if idx == 0 {
+		return
+	}
+	attachs := sliceValueRemoveIndex(s.document.Attachments, idx-1)
+	s.document.Attachments = attachs.([]attachmentFile)
+	s.showAttachList()
+	s.editor.Document().SetModified(true)
+	//curDiary.Modified = true
+}
+
+func sliceValueRemoveIndex(v interface{}, idx int) interface{} {
+	val := reflect.ValueOf(v)
+	if val.Type().Kind() != reflect.Slice {
+		return v
+	}
+	length := val.Len()
+	if length == 0 {
+		return v
+	}
+	if idx >= length || idx < 0 {
+		return v
+	}
+
+	res := reflect.MakeSlice(val.Type(), length-1, length-1)
+	for i := 0; i < idx; i++ {
+		res.Index(i).Set(val.Index(i))
+	}
+	for i := idx + 1; i < length; i++ {
+		res.Index(i - 1).Set(val.Index(i))
+	}
+	return res.Interface()
 }

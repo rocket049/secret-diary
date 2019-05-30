@@ -34,7 +34,7 @@ var curDiary struct {
 	Item      *gui.QStandardItem
 	Day       string
 	YearMonth string
-	Modified  bool
+	//Modified  bool
 }
 
 func T(v string) string {
@@ -310,7 +310,7 @@ func (s *myWindow) setToolBar() {
 		if s.addAttachment(filename) {
 			s.showAttachList()
 			s.editor.Document().SetModified(true)
-			curDiary.Modified = true
+			//curDiary.Modified = true
 		}
 
 	})
@@ -340,12 +340,16 @@ func (s *myWindow) setupComboAttachs() *widgets.QHBoxLayout {
 	s.comboAttachs = widgets.NewQComboBox(s.window)
 	s.comboAttachs.SetSizePolicy2(widgets.QSizePolicy__Expanding, widgets.QSizePolicy__Fixed)
 	s.comboAttachs.AddItems([]string{T("-- Selected Attachments --")})
-	btn := widgets.NewQPushButton2(T("Export As..."), s.window)
-	btn.SetSizePolicy2(widgets.QSizePolicy__Fixed, widgets.QSizePolicy__Fixed)
+	expBtn := widgets.NewQPushButton2(T("Export As..."), s.window)
+	expBtn.SetSizePolicy2(widgets.QSizePolicy__Fixed, widgets.QSizePolicy__Fixed)
 	hbox.AddWidget(s.comboAttachs, 1, 0)
-	hbox.AddWidget(btn, 1, 0)
+	hbox.AddWidget(expBtn, 1, 0)
 
-	btn.ConnectClicked(func(b bool) {
+	delBtn := widgets.NewQPushButton2(T("Remove"), s.window)
+	delBtn.SetSizePolicy2(widgets.QSizePolicy__Fixed, widgets.QSizePolicy__Fixed)
+	hbox.AddWidget(delBtn, 1, 0)
+
+	expBtn.ConnectClicked(func(b bool) {
 		idx := s.comboAttachs.CurrentIndex()
 		if idx == 0 {
 			return
@@ -355,6 +359,17 @@ func (s *myWindow) setupComboAttachs() *widgets.QHBoxLayout {
 		filename := dlg.GetSaveFileName(s.window, T("Save File"), s.document.Attachments[idx].Name, "All (*)", "All (*)", 0)
 		if len(filename) > 0 {
 			ioutil.WriteFile(filename, s.document.Attachments[idx].Data, 0644)
+		}
+
+	})
+
+	delBtn.ConnectClicked(func(b bool) {
+		if s.comboAttachs.CurrentIndex() == 0 {
+			return
+		}
+		ret := widgets.QMessageBox_Question(s.window, T("Remove"), T("Are you sure?"), widgets.QMessageBox__Yes|widgets.QMessageBox__No, widgets.QMessageBox__Yes)
+		if ret == widgets.QMessageBox__Yes {
+			s.removeCurAttachment()
 		}
 
 	})
@@ -442,6 +457,13 @@ func (s *myWindow) Create(app *widgets.QApplication) {
 	})
 
 	s.window.ConnectCloseEvent(func(e *gui.QCloseEvent) {
+		if s.editor.Document().IsModified() {
+			ret := widgets.QMessageBox_Question(s.window, T("Close"), T("Do you want to save the document?"), widgets.QMessageBox__Yes|widgets.QMessageBox__No, widgets.QMessageBox__Yes)
+			if ret == widgets.QMessageBox__Yes {
+				s.saveCurDiary()
+			}
+		}
+
 		s.db.Close()
 	})
 	s.window.Show()
@@ -482,7 +504,7 @@ func (s *myWindow) createEditor() widgets.QWidget_ITF {
 }
 
 func (s *myWindow) saveCurDiary() {
-	if !curDiary.Modified || s.editor.Document().IsModified() == false {
+	if s.editor.Document().IsModified() == false {
 		s.setStatusBar(T("No Diary Saved"))
 		return
 	}
@@ -515,7 +537,8 @@ func (s *myWindow) saveCurDiary() {
 
 	encodeToFile(s.getRichText(), filename, s.key)
 	s.setStatusBar(T("Save Diary") + fmt.Sprintf(" %s(%s)", title, filename))
-	curDiary.Modified = false
+	//curDiary.Modified = false
+	s.editor.Document().SetModified(false)
 }
 
 func (s *myWindow) addDiary(yearMonth, day, title string) {
@@ -641,16 +664,14 @@ func (s *myWindow) selectDiary(idx *core.QModelIndex) {
 	filename := diary.AccessibleText() + ".dat"
 	data, err := decodeFromFile(filename, s.key)
 
-	if err == nil {
-		_, err = s.getQText(data)
-	}
 	if err != nil {
 		//log.Println(err)
+		s.getQText(data)
 		if curDiary.Item != nil {
 			s.saveCurDiary()
 		}
 		curDiary.Item = diary
-		curDiary.Modified = false
+		//curDiary.Modified = false
 		curDiary.YearMonth = diary.Parent().Text()
 		vs := strings.Index(diary.Text(), "-")
 		curDiary.Day = diary.Text()[:vs]
@@ -660,8 +681,9 @@ func (s *myWindow) selectDiary(idx *core.QModelIndex) {
 		if curDiary.Item != nil {
 			s.saveCurDiary()
 		}
+		s.getQText(data)
 		curDiary.Item = diary
-		curDiary.Modified = false
+		//curDiary.Modified = false
 		curDiary.YearMonth = diary.Parent().Text()
 		vs := strings.Index(diary.Text(), "-")
 		curDiary.Day = diary.Text()[:vs]
@@ -700,7 +722,7 @@ func (s *myWindow) diaryPopup(idx *core.QModelIndex, e *gui.QMouseEvent) {
 				s.db.RemoveDiary(id)
 			}
 			curDiary.Item = nil
-			curDiary.Modified = false
+			//curDiary.Modified = false
 			p := diary.Parent()
 			p.RemoveRow(diary.Row())
 
@@ -793,7 +815,7 @@ func (s *myWindow) setEditorFuncs() {
 		if curDiary.Item == nil {
 			return
 		}
-		curDiary.Modified = true
+		//curDiary.Modified = true
 		disp1 := curDiary.Day + "-" + strings.TrimSpace(s.editor.Document().FirstBlock().Text())
 		//fmt.Println(disp1)
 
@@ -1281,7 +1303,7 @@ func (s *myWindow) importEncryptedDiary() {
 		if err == nil {
 
 			s.editor.SetHtml(s.document.Html)
-			curDiary.Modified = true
+			//curDiary.Modified = true
 			s.editor.Document().SetModified(true)
 
 			s.saveCurDiary()

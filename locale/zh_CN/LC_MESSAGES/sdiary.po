@@ -267,3 +267,12 @@ msgstr "导出"
 msgid "Attach..."
 msgstr "附件"
 
+msgid "Remove"
+msgstr "删除"
+
+msgid "Append Attachments"
+msgstr "添加附件"
+
+msgid "Do you want to save the document?"
+msgstr "是否保存当前文档？"
+
