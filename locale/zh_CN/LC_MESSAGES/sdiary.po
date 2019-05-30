@@ -276,3 +276,5 @@ msgstr "添加附件"
 msgid "Do you want to save the document?"
 msgstr "是否保存当前文档？"
 
+msgid "Please input the name and password to register before you click this button!"
+msgstr "点击本按钮前，请先在上面输入你想注册的用户名和密码！"

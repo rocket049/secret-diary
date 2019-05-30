@@ -566,6 +566,7 @@ func (s *myWindow) addDiary(yearMonth, day, title string) {
 	s.exportPdf.SetEnabled(true)
 
 	s.setTitle(title)
+	s.clearAttachs()
 
 	s.tree.Expand(month.Index())
 }
@@ -1069,6 +1070,7 @@ func (s *myWindow) login() {
 	btb.AddWidget(okBtn, 0, 0, 0)
 
 	regBtn := widgets.NewQPushButton2(T("Register"), dlg)
+	regBtn.SetToolTip(T("Please input the name and password to register before you click this button!"))
 	btb.AddWidget(regBtn, 0, 1, 0)
 
 	cancelBtn := widgets.NewQPushButton2(T("Cancel"), dlg)
@@ -1107,6 +1109,8 @@ func (s *myWindow) login() {
 
 	regBtn.ConnectClicked(func(b bool) {
 		if len(pwdInput.Text()) < minLen || len(nameInput.Text()) < 1 {
+			widgets.QMessageBox_Warning(s.window, T("Register"),
+				T("Please input the name and password to register before you click this button!"), widgets.QMessageBox__Ok, widgets.QMessageBox__Ok)
 			return
 		}
 		var ok bool
