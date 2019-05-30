@@ -31,3 +31,7 @@
 
 1. 用户真实密码 = 用户密码 X 40
 2. 真实密码 = sha256( 用户真实密码 )
+
+[!支付宝 alipay](./pay/alipay.jpg)
+
+[!微信支付 wxpay](./pay/wxpay.png)
