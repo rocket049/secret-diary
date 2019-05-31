@@ -223,3 +223,18 @@ func (s *myDb) RemoveDiary(id string) error {
 	}
 	return os.Remove(path.Join(dataDir, filename))
 }
+
+func (s *myDb) SearchTitle(kw string) ([]diaryItem, error) {
+	rows, err := s.db.Query("select id,cdate,title,mtime from diaries where instr(title,?)>0 order by cdate desc;", kw)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	res := []diaryItem{}
+	for rows.Next() {
+		var v diaryItem
+		rows.Scan(&v.Id, &v.Day, &v.Title, &v.MTime)
+		res = append(res, v)
+	}
+	return res, nil
+}

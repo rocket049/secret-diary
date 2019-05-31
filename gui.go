@@ -30,8 +30,9 @@ func init() {
 	gettext.Textdomain("sdiary")
 }
 
-var curDiary struct {
+type diaryPointer struct {
 	Item      *gui.QStandardItem
+	Id        int
 	Day       string
 	YearMonth string
 	//Modified  bool
@@ -46,6 +47,8 @@ type myWindow struct {
 	window              *widgets.QMainWindow
 	tree                *widgets.QTreeView
 	model               *gui.QStandardItemModel
+	treeFind            *widgets.QTreeView
+	modelFind           *gui.QStandardItemModel
 	editor              *widgets.QTextEdit
 	comboAttachs        *widgets.QComboBox
 	actionTextBold      *widgets.QAction
@@ -54,6 +57,12 @@ type myWindow struct {
 	actionStrikeOut     *widgets.QAction
 	exportEnc           *widgets.QAction
 	exportPdf           *widgets.QAction
+	importEnc           *widgets.QAction
+	newDiary            *widgets.QAction
+	saveDiary           *widgets.QAction
+	renDiary            *widgets.QAction
+	modifyPwd           *widgets.QAction
+	curDiary            diaryPointer
 	user                string
 	key                 []byte
 	db                  *myDb
@@ -84,8 +93,8 @@ func (s *myWindow) setMenuBar() {
 		s.exportAsPdf()
 	})
 
-	importEnc := menu.AddAction(T("Import Encrypted Diary"))
-	importEnc.ConnectTriggered(func(b bool) {
+	s.importEnc = menu.AddAction(T("Import Encrypted Diary"))
+	s.importEnc.ConnectTriggered(func(b bool) {
 		s.importEncryptedDiary()
 	})
 
@@ -150,13 +159,13 @@ func (s *myWindow) setMenuBar() {
 
 	menu = menubar.AddMenu2(T("Manage"))
 
-	ren := menu.AddAction(T("Rename"))
-	ren.ConnectTriggered(func(b bool) {
+	s.renDiary = menu.AddAction(T("Rename"))
+	s.renDiary.ConnectTriggered(func(b bool) {
 		s.rename()
 	})
 
-	pwdNew := menu.AddAction(T("ModifyPassword"))
-	pwdNew.ConnectTriggered(func(b bool) {
+	s.modifyPwd = menu.AddAction(T("ModifyPassword"))
+	s.modifyPwd.ConnectTriggered(func(b bool) {
 		s.updatePwd()
 	})
 
@@ -181,20 +190,16 @@ func (s *myWindow) setMenuBar() {
 
 func (s *myWindow) setToolBar() {
 	bar := widgets.NewQToolBar("File", nil)
-	act1 := bar.AddAction(T("New"))
-	act1.ConnectTriggered(func(b bool) {
+	s.newDiary = bar.AddAction(T("New"))
+	s.newDiary.ConnectTriggered(func(b bool) {
 		s.setStatusBar(T("New Diary"))
 		now := time.Now()
 		s.addDiary(now.Format("2006-01"), now.Format("02"), T("New Diary")+now.Format("2006-01-02"))
 	})
 
-	act2 := bar.AddAction(T("Save"))
-	act2.SetToolTip(T("Save") + " Ctrl-S")
-	act2.SetShortcut(gui.QKeySequence_FromString("CTRL+s", gui.QKeySequence__NativeText))
-	act2.ConnectTriggered(func(b bool) {
-
-		s.saveCurDiary()
-	})
+	s.saveDiary = bar.AddAction(T("Save"))
+	s.saveDiary.SetToolTip(T("Save") + " Ctrl-S")
+	s.saveDiary.SetShortcut(gui.QKeySequence_FromString("CTRL+s", gui.QKeySequence__NativeText))
 
 	s.window.AddToolBar2(bar)
 
@@ -416,20 +421,22 @@ func (s *myWindow) Create(app *widgets.QApplication) {
 
 	s.window.SetCentralWidget(frame)
 
-	s.tree = widgets.NewQTreeView(s.window)
-	s.tree.SetFixedWidth(240)
-	s.tree.SetSizePolicy2(widgets.QSizePolicy__Preferred, widgets.QSizePolicy__Expanding)
-	s.tree.SetHorizontalScrollBarPolicy(core.Qt__ScrollBarAsNeeded)
-	s.tree.SetAutoScroll(true)
-	s.model = gui.NewQStandardItemModel2(0, 1, s.tree)
-	s.model.SetHorizontalHeaderLabels([]string{T("Diary List")})
+	// s.tree = widgets.NewQTreeView(s.window)
+	// s.tree.SetFixedWidth(240)
+	// s.tree.SetSizePolicy2(widgets.QSizePolicy__Preferred, widgets.QSizePolicy__Expanding)
+	// s.tree.SetHorizontalScrollBarPolicy(core.Qt__ScrollBarAsNeeded)
+	// s.tree.SetAutoScroll(true)
+	// s.model = gui.NewQStandardItemModel2(0, 1, s.tree)
+	// s.model.SetHorizontalHeaderLabels([]string{T("Diary List")})
 
-	s.tree.SetModel(s.model)
+	// s.tree.SetModel(s.model)
 
-	grid.AddWidget3(s.tree, 0, 0, 2, 1, 0)
+	// grid.AddWidget3(s.tree, 0, 0, 2, 1, 0)
+	leftArea := s.createLeftArea()
+	grid.AddWidget3(leftArea, 0, 0, 2, 1, 0)
 
 	editor := s.createEditor()
-
+	s.window.SetMinimumWidth(s.tree.Width() + s.editor.Width() + 100)
 	grid.AddWidget3(editor, 0, 1, 1, 1, 0)
 
 	comboBox := s.setupComboAttachs()
@@ -469,6 +476,47 @@ func (s *myWindow) Create(app *widgets.QApplication) {
 	s.window.Show()
 }
 
+func (s *myWindow) createLeftArea() widgets.QWidget_ITF {
+	spliter := widgets.NewQSplitter(nil)
+	spliter.SetOrientation(core.Qt__Vertical)
+	s.tree = widgets.NewQTreeView(s.window)
+	s.tree.SetFixedWidth(240)
+	s.tree.SetSizePolicy2(widgets.QSizePolicy__Preferred, widgets.QSizePolicy__Expanding)
+	s.tree.SetHorizontalScrollBarPolicy(core.Qt__ScrollBarAsNeeded)
+	s.tree.SetAutoScroll(true)
+	s.model = gui.NewQStandardItemModel2(0, 1, s.tree)
+	s.model.SetHorizontalHeaderLabels([]string{T("Diary List")})
+	s.tree.SetModel(s.model)
+	spliter.AddWidget(s.tree)
+
+	search := widgets.NewQWidget(nil, core.Qt__Widget)
+	grid := widgets.NewQGridLayout(search)
+	keyword := widgets.NewQLineEdit(search)
+	grid.AddWidget(keyword, 0, 0, 0)
+
+	btn := widgets.NewQPushButton2(T("Search"), search)
+	grid.AddWidget(btn, 0, 1, 0)
+	btn.ConnectClicked(func(b bool) {
+		s.searchFromDb(strings.TrimSpace(keyword.Text()))
+	})
+
+	s.treeFind = widgets.NewQTreeView(s.window)
+	s.treeFind.SetFixedWidth(240)
+	s.treeFind.SetMinimumHeight(100)
+	s.treeFind.SetSizePolicy2(widgets.QSizePolicy__Preferred, widgets.QSizePolicy__Preferred)
+	s.treeFind.SetHorizontalScrollBarPolicy(core.Qt__ScrollBarAsNeeded)
+	s.treeFind.SetAutoScroll(true)
+	s.modelFind = gui.NewQStandardItemModel2(0, 1, s.treeFind)
+	s.modelFind.SetHorizontalHeaderLabels([]string{T("Result List")})
+	s.treeFind.SetModel(s.modelFind)
+	grid.AddWidget3(s.treeFind, 1, 0, 1, 2, 0)
+	search.SetLayout(grid)
+	spliter.AddWidget(search)
+
+	s.setTreeFindFuncs()
+	return spliter
+}
+
 func (s *myWindow) createEditor() widgets.QWidget_ITF {
 	scrollarea := widgets.NewQScrollArea(s.window)
 	scrollarea.SetHorizontalScrollBarPolicy(core.Qt__ScrollBarAsNeeded)
@@ -498,8 +546,6 @@ func (s *myWindow) createEditor() widgets.QWidget_ITF {
 	frame.SetLayout(grid)
 	scrollarea.SetWidget(frame)
 
-	s.window.SetMinimumWidth(s.tree.Width() + s.editor.Width() + 100)
-
 	return scrollarea
 }
 
@@ -510,23 +556,23 @@ func (s *myWindow) saveCurDiary() {
 	}
 	//fmt.Println("save", curDiary.Item.AccessibleText(), s.editor.ToHtml())
 	var first bool = false
-	if len(curDiary.Item.AccessibleText()) == 0 {
-		p := curDiary.Item.Parent()
-		pos := curDiary.Item.Index()
+	if len(s.curDiary.Item.AccessibleText()) == 0 {
+		p := s.curDiary.Item.Parent()
+		pos := s.curDiary.Item.Index()
 		item := p.TakeChild(pos.Row(), pos.Column())
 		item.SetAccessibleText(fmt.Sprintf("%d", s.db.NextId()))
 		p.SetChild(pos.Row(), pos.Column(), item)
-		curDiary.Item = item
+		s.curDiary.Item = item
 		first = true
 	}
 
-	filename := curDiary.Item.AccessibleText() + ".dat"
-	id, err := strconv.Atoi(curDiary.Item.AccessibleText())
+	filename := s.curDiary.Item.AccessibleText() + ".dat"
+	id, err := strconv.Atoi(s.curDiary.Item.AccessibleText())
 	if err != nil {
 		s.setStatusBar(T("Error ID"))
 		return
 	}
-	vs := strings.SplitN(curDiary.Item.Text(), "-", 2)
+	vs := strings.SplitN(s.curDiary.Item.Text(), "-", 2)
 	title := vs[1]
 	//fmt.Println(filename, title)
 	if first {
@@ -542,7 +588,7 @@ func (s *myWindow) saveCurDiary() {
 }
 
 func (s *myWindow) addDiary(yearMonth, day, title string) {
-	if curDiary.Item != nil {
+	if s.curDiary.Item != nil {
 		s.saveCurDiary()
 	}
 
@@ -557,9 +603,9 @@ func (s *myWindow) addDiary(yearMonth, day, title string) {
 
 	s.tree.SetCurrentIndex(diary.Index())
 
-	curDiary.Item = diary
-	curDiary.Day = day
-	curDiary.YearMonth = yearMonth
+	s.curDiary.Item = diary
+	s.curDiary.Day = day
+	s.curDiary.YearMonth = yearMonth
 
 	s.editor.SetReadOnly(false)
 	s.exportEnc.SetEnabled(true)
@@ -656,7 +702,7 @@ func (s *myWindow) addYearMonth(yearMonth string) *gui.QStandardItem {
 
 func (s *myWindow) selectDiary(idx *core.QModelIndex) {
 	diary := s.model.ItemFromIndex(idx)
-	if diary.Pointer() == curDiary.Item.Pointer() {
+	if diary.Pointer() == s.curDiary.Item.Pointer() {
 		return
 	}
 	if len(diary.AccessibleText()) == 0 {
@@ -668,26 +714,26 @@ func (s *myWindow) selectDiary(idx *core.QModelIndex) {
 	if err != nil {
 		//log.Println(err)
 		s.getQText(data)
-		if curDiary.Item != nil {
+		if s.curDiary.Item != nil {
 			s.saveCurDiary()
 		}
-		curDiary.Item = diary
+		s.curDiary.Item = diary
 		//curDiary.Modified = false
-		curDiary.YearMonth = diary.Parent().Text()
+		s.curDiary.YearMonth = diary.Parent().Text()
 		vs := strings.Index(diary.Text(), "-")
-		curDiary.Day = diary.Text()[:vs]
+		s.curDiary.Day = diary.Text()[:vs]
 		s.setTitle(diary.Text()[vs+1:])
 
 	} else {
-		if curDiary.Item != nil {
+		if s.curDiary.Item != nil {
 			s.saveCurDiary()
 		}
 		s.getQText(data)
-		curDiary.Item = diary
+		s.curDiary.Item = diary
 		//curDiary.Modified = false
-		curDiary.YearMonth = diary.Parent().Text()
+		s.curDiary.YearMonth = diary.Parent().Text()
 		vs := strings.Index(diary.Text(), "-")
-		curDiary.Day = diary.Text()[:vs]
+		s.curDiary.Day = diary.Text()[:vs]
 		s.editor.Document().SetHtml(s.document.Html)
 
 		s.showAttachList()
@@ -709,8 +755,8 @@ func (s *myWindow) diaryPopup(idx *core.QModelIndex, e *gui.QMouseEvent) {
 	s.selectDiary(idx)
 
 	menu := widgets.NewQMenu(s.tree)
-	item := menu.AddAction(T("Delete"))
-	item.ConnectTriggered(func(checked bool) {
+	delItem := menu.AddAction(T("Delete"))
+	delItem.ConnectTriggered(func(checked bool) {
 		dlg := widgets.NewQMessageBox(s.window)
 		dlg.SetWindowTitle(T("Confirm"))
 		dlg.SetText(T("Are you sure?"))
@@ -722,13 +768,23 @@ func (s *myWindow) diaryPopup(idx *core.QModelIndex, e *gui.QMouseEvent) {
 			if len(id) > 0 {
 				s.db.RemoveDiary(id)
 			}
-			curDiary.Item = nil
+			s.curDiary.Item = nil
 			//curDiary.Modified = false
 			p := diary.Parent()
 			p.RemoveRow(diary.Row())
 
 		}
 
+	})
+
+	openItem := menu.AddAction(T("Open in New Window"))
+	openItem.ConnectTriggered(func(checked bool) {
+		id, err := strconv.Atoi(diary.AccessibleText())
+		if err != nil {
+			s.setStatusBar(err.Error())
+			return
+		}
+		OpenDiaryNewWindow(s, id)
 	})
 
 	menu.QWidget.AddAction(s.exportEnc)
@@ -812,23 +868,28 @@ func (s *myWindow) setTitle(v string) {
 
 func (s *myWindow) setEditorFuncs() {
 
+	s.saveDiary.ConnectTriggered(func(b bool) {
+		s.saveCurDiary()
+	})
+
 	s.editor.ConnectTextChanged(func() {
-		if curDiary.Item == nil {
+		if s.curDiary.Item == nil {
 			return
 		}
 		//curDiary.Modified = true
-		disp1 := curDiary.Day + "-" + strings.TrimSpace(s.editor.Document().FirstBlock().Text())
+		disp1 := s.curDiary.Day + "-" + strings.TrimSpace(s.editor.Document().FirstBlock().Text())
 		//fmt.Println(disp1)
 
-		disp0 := curDiary.Item.Text()
+		disp0 := s.curDiary.Item.Text()
 		if disp0 != disp1 {
-			p := curDiary.Item.Parent()
-			pos := curDiary.Item.Index()
-			curDiary.Item = p.TakeChild(pos.Row(), pos.Column())
-			curDiary.Item.SetText(disp1)
-			p.SetChild(pos.Row(), pos.Column(), curDiary.Item)
-			s.tree.SetCurrentIndex(curDiary.Item.Index())
+			p := s.curDiary.Item.Parent()
+			pos := s.curDiary.Item.Index()
+			s.curDiary.Item = p.TakeChild(pos.Row(), pos.Column())
+			s.curDiary.Item.SetText(disp1)
+			p.SetChild(pos.Row(), pos.Column(), s.curDiary.Item)
+			s.tree.SetCurrentIndex(s.curDiary.Item.Index())
 			s.tree.ResizeColumnToContents(0)
+			s.editor.Document().SetModified(true)
 		}
 
 	})
@@ -1102,6 +1163,7 @@ func (s *myWindow) login() {
 			s.window.Close()
 		}
 		s.saveLastUser(nameInput.Text())
+		s.user = nameInput.Text()
 		s.window.SetWindowTitle(nameInput.Text())
 		dlg.Hide()
 
@@ -1136,6 +1198,7 @@ func (s *myWindow) login() {
 			panic(err)
 		}
 		s.saveLastUser(nameInput.Text())
+		s.user = nameInput.Text()
 		s.window.SetWindowTitle(nameInput.Text())
 		dlg.Hide()
 

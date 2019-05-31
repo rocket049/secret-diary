@@ -278,3 +278,15 @@ msgstr "是否保存当前文档？"
 
 msgid "Please input the name and password to register before you click this button!"
 msgstr "点击本按钮前，请先在上面输入你想注册的用户名和密码！"
+
+msgid "Search"
+msgstr "搜索"
+
+msgid "Open in New Window"
+msgstr "在新窗口中打开"
+
+msgid "Double Click to Open. "
+msgstr "双击打开。"
+
+msgid "Result List"
+msgstr "搜索结果"

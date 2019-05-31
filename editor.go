@@ -2,11 +2,13 @@ package main
 
 import (
 	"bufio"
+	"fmt"
 	"io/ioutil"
 	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/therecipe/qt/core"
 	"github.com/therecipe/qt/gui"
@@ -466,4 +468,174 @@ func (s *myWindow) clearFormatAtCursor() {
 
 	cursor.InsertText(text)
 
+}
+
+func OpenDiaryNewWindow(parent *myWindow, id int) *myWindow {
+	win := new(myWindow)
+	win.OpenNewWindow(parent, id)
+	return win
+}
+
+func (s *myWindow) OpenNewWindow(parent *myWindow, id int) {
+	s.key = parent.key
+	s.curDiary.Id = id
+	s.db = parent.db
+
+	s.window = widgets.NewQMainWindow(parent.window, core.Qt__Window)
+
+	s.window.SetWindowTitle(parent.user)
+	s.window.SetMinimumSize2(800, 600)
+	s.window.SetWindowIcon(gui.NewQIcon5(":/qml/icons/Sd.png"))
+
+	grid := widgets.NewQGridLayout2()
+
+	frame := widgets.NewQFrame(s.window, core.Qt__Widget)
+
+	s.window.SetCentralWidget(frame)
+
+	editor := s.createEditor()
+	s.window.SetMinimumWidth(s.editor.Width() + 100)
+
+	grid.AddWidget3(editor, 0, 0, 1, 1, 0)
+
+	comboBox := s.setupComboAttachs()
+	grid.AddLayout(comboBox, 1, 0, 0)
+
+	grid.SetAlign(core.Qt__AlignTop)
+
+	s.setToolBar()
+
+	s.setMenuBar()
+
+	s.exportEnc.SetEnabled(true)
+	s.exportPdf.SetEnabled(true)
+	s.importEnc.SetDisabled(true)
+	s.newDiary.SetDisabled(true)
+	s.renDiary.SetDisabled(true)
+	s.modifyPwd.SetDisabled(true)
+
+	s.saveDiary.ConnectTriggered(func(b bool) {
+		s.saveDiaryAlone()
+	})
+
+	frame.SetLayout(grid)
+
+	once := sync.Once{}
+	s.window.ConnectShowEvent(func(e *gui.QShowEvent) {
+		once.Do(func() {
+			s.loadDiary()
+		})
+	})
+
+	s.window.ConnectCloseEvent(func(e *gui.QCloseEvent) {
+		if s.editor.Document().IsModified() {
+			ret := widgets.QMessageBox_Question(s.window, T("Close"), T("Do you want to save the document?"), widgets.QMessageBox__Yes|widgets.QMessageBox__No, widgets.QMessageBox__Yes)
+			if ret == widgets.QMessageBox__Yes {
+				s.saveCurDiary()
+			}
+		}
+
+	})
+	s.window.Show()
+}
+
+func (s *myWindow) loadDiary() {
+	filename := strconv.Itoa(s.curDiary.Id) + ".dat"
+	data, err := decodeFromFile(filename, s.key)
+	if err != nil {
+		s.setStatusBar(err.Error())
+	} else {
+		s.getQText(data)
+		s.editor.Document().SetHtml(s.document.Html)
+
+		s.showAttachList()
+		s.editor.Document().SetModified(false)
+		s.editor.SetReadOnly(false)
+	}
+}
+
+func (s *myWindow) saveDiaryAlone() {
+	if s.editor.Document().IsModified() == false {
+		s.setStatusBar(T("No Diary Saved"))
+		return
+	}
+	filename := strconv.Itoa(s.curDiary.Id) + ".dat"
+	encodeToFile(s.getRichText(), filename, s.key)
+
+	title := strings.TrimSpace(s.editor.Document().FirstBlock().Text())
+	s.db.UpdateDiaryTitle(s.curDiary.Id, title)
+
+	s.setStatusBar(T("Save Diary") + fmt.Sprintf(" %s(%s)", title, filename))
+}
+
+func (s *myWindow) searchFromDb(kw string) {
+	if len(kw) == 0 {
+		s.setStatusBar(T("Must Input Search Keyword!"))
+		return
+	}
+	s.setStatusBar(T("Loading Diary List..."))
+	diaryList, err := s.db.SearchTitle(kw)
+	if err != nil {
+		s.setStatusBar(err.Error())
+		return
+	}
+	s.modelFind.Clear()
+	s.modelFind.SetHorizontalHeaderLabels([]string{T("Result List")})
+	var ym string
+	var r, c int
+	for _, diary := range diaryList {
+		if diary.Day[:7] != ym {
+			ym = diary.Day[:7]
+			item := s.addFindYM(ym)
+			idx := item.Index()
+			r, c = idx.Row(), idx.Column()
+			s.treeFind.Expand(idx)
+		}
+		item := s.modelFind.Item(r, c)
+		child := gui.NewQStandardItem2(fmt.Sprintf("%s-%s", diary.Day[8:], diary.Title))
+		child.SetEditable(false)
+		child.SetAccessibleText(strconv.Itoa(diary.Id))
+		child.SetAccessibleDescription("0")
+		child.SetToolTip(T("Double Click to Open. ") + T("Last Modified:") + diary.MTime)
+
+		item.AppendRow2(child)
+	}
+	s.treeFind.ResizeColumnToContents(0)
+	return
+}
+
+func (s *myWindow) addFindYM(yearMonth string) *gui.QStandardItem {
+	idx := core.NewQModelIndex()
+	p := s.modelFind.Parent(idx)
+	n := s.modelFind.RowCount(p)
+	for i := 0; i < n; i++ {
+		item := s.modelFind.Item(i, 0)
+		if item.Text() == yearMonth {
+			return item
+		}
+	}
+	item := gui.NewQStandardItem2(yearMonth)
+	item.SetColumnCount(1)
+	item.SetEditable(false)
+
+	item.SetAccessibleText("1")
+	item.SetAccessibleDescription("1")
+
+	s.modelFind.AppendRow2(item)
+
+	return item
+}
+
+func (s *myWindow) setTreeFindFuncs() {
+	s.treeFind.ConnectActivated(func(idx *core.QModelIndex) {
+		item := s.modelFind.ItemFromIndex(idx)
+		if item.AccessibleDescription() == "1" {
+			return
+		}
+		id, err := strconv.Atoi(item.AccessibleText())
+		if err != nil {
+			s.setStatusBar(err.Error())
+		}
+		OpenDiaryNewWindow(s, id)
+	})
 }
