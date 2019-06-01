@@ -412,7 +412,7 @@ func (s *myWindow) Create(app *widgets.QApplication) {
 	s.window = widgets.NewQMainWindow(nil, core.Qt__Window)
 
 	s.window.SetWindowTitle(T("UserName"))
-	s.window.SetMinimumSize2(800, 600)
+
 	s.window.SetWindowIcon(gui.NewQIcon5(":/qml/icons/Sd.png"))
 
 	grid := widgets.NewQGridLayout2()
@@ -436,7 +436,9 @@ func (s *myWindow) Create(app *widgets.QApplication) {
 	grid.AddWidget3(leftArea, 0, 0, 2, 1, 0)
 
 	editor := s.createEditor()
-	s.window.SetMinimumWidth(s.tree.Width() + s.editor.Width() + 100)
+	w := s.tree.Width() + s.editor.Width() + 100
+	s.window.SetMinimumWidth(w)
+	s.window.SetMinimumHeight(w * 3 / 4)
 	grid.AddWidget3(editor, 0, 1, 1, 1, 0)
 
 	comboBox := s.setupComboAttachs()
@@ -480,7 +482,8 @@ func (s *myWindow) createLeftArea() widgets.QWidget_ITF {
 	spliter := widgets.NewQSplitter(nil)
 	spliter.SetOrientation(core.Qt__Vertical)
 	s.tree = widgets.NewQTreeView(s.window)
-	s.tree.SetFixedWidth(240)
+	s.tree.SetMinimumWidth(240)
+	s.tree.SetMinimumHeight(400)
 	s.tree.SetSizePolicy2(widgets.QSizePolicy__Preferred, widgets.QSizePolicy__Expanding)
 	s.tree.SetHorizontalScrollBarPolicy(core.Qt__ScrollBarAsNeeded)
 	s.tree.SetAutoScroll(true)
@@ -499,10 +502,13 @@ func (s *myWindow) createLeftArea() widgets.QWidget_ITF {
 	btn.ConnectClicked(func(b bool) {
 		s.searchFromDb(strings.TrimSpace(keyword.Text()))
 	})
+	keyword.ConnectEditingFinished(func() {
+		s.searchFromDb(strings.TrimSpace(keyword.Text()))
+	})
 
 	s.treeFind = widgets.NewQTreeView(s.window)
 	s.treeFind.SetFixedWidth(240)
-	s.treeFind.SetMinimumHeight(100)
+
 	s.treeFind.SetSizePolicy2(widgets.QSizePolicy__Preferred, widgets.QSizePolicy__Preferred)
 	s.treeFind.SetHorizontalScrollBarPolicy(core.Qt__ScrollBarAsNeeded)
 	s.treeFind.SetAutoScroll(true)
@@ -511,6 +517,8 @@ func (s *myWindow) createLeftArea() widgets.QWidget_ITF {
 	s.treeFind.SetModel(s.modelFind)
 	grid.AddWidget3(s.treeFind, 1, 0, 1, 2, 0)
 	search.SetLayout(grid)
+	search.SetMinimumHeight(100)
+	search.SetSizePolicy2(widgets.QSizePolicy__Preferred, widgets.QSizePolicy__Minimum)
 	spliter.AddWidget(search)
 
 	s.setTreeFindFuncs()
