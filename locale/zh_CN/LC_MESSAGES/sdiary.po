@@ -244,7 +244,7 @@ msgid "Import Encrypted Diary"
 msgstr "导入加密日记..."
 
 msgid "Export PDF..."
-msgstr "导出加PDF..."
+msgstr "导出为PDF..."
 
 msgid "FileName:"
 msgstr "文件："

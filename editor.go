@@ -112,7 +112,7 @@ func (s *myWindow) textStyle(styleIndex int) {
 	} else {
 		var bfmt = gui.NewQTextBlockFormat()
 		bfmt.SetObjectIndex(-1)
-		cursor.MergeBlockFormat(bfmt)
+		cursor.SetBlockFormat(bfmt)
 	}
 }
 
@@ -450,9 +450,6 @@ func (s *myWindow) getTable() (t *gui.QTextTable, cell *gui.QTextTableCell) {
 
 func (s *myWindow) clearFormatAtCursor() {
 	cursor := s.editor.TextCursor()
-	cursor.Select(gui.QTextCursor__BlockUnderCursor)
-	text := cursor.Selection().ToPlainText()
-	cursor.RemoveSelectedText()
 
 	block := cursor.Block()
 	cfmt := block.CharFormat()
@@ -463,11 +460,16 @@ func (s *myWindow) clearFormatAtCursor() {
 	cfmt.SetFontPointSize(14)
 	cfmt.SetFontItalic(false)
 	cfmt.SetFontStrikeOut(false)
-	cursor.MergeCharFormat(cfmt)
-	s.editor.MergeCurrentCharFormat(cfmt)
 
-	cursor.InsertText(text)
+	var bfmt = gui.NewQTextBlockFormat()
+	bfmt.SetObjectIndex(-1)
 
+	if !cursor.HasSelection() {
+		cursor.Select(gui.QTextCursor__LineUnderCursor)
+	}
+	cursor.SetCharFormat(cfmt)
+	cursor.SetBlockFormat(bfmt)
+	s.editor.SetCurrentCharFormat(cfmt)
 }
 
 func OpenDiaryNewWindow(parent *myWindow, id int) *myWindow {

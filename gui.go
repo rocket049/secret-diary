@@ -919,7 +919,7 @@ func (s *myWindow) setEditorFuncs() {
 			act.ConnectTriggered(func(b bool) {
 				ext := filepath.Ext(imgUrl)
 				filter := fmt.Sprintf("%s Image (*%s)", ext, ext)
-				filename := widgets.QFileDialog_GetSaveFileName(s.window, T("Export Image As..."), ".", filter, filter, 0)
+				filename := widgets.QFileDialog_GetSaveFileName(s.window, T("Export Image As..."), filepath.Base(imgUrl), filter, filter, 0)
 				if strings.HasSuffix(filename, ext) == false {
 					filename = filename + ext
 				}
@@ -992,6 +992,7 @@ func (s *myWindow) mergeFormatOnLineOrSelection(format *gui.QTextCharFormat) *gu
 	}
 	cursor.MergeCharFormat(format)
 	s.editor.MergeCurrentCharFormat(format)
+
 	return cursor
 }
 
@@ -1403,7 +1404,7 @@ func (s *myWindow) importEncryptedDiary() {
 }
 
 func (s *myWindow) exportAsPdf() {
-	filename := widgets.QFileDialog_GetSaveFileName(s.window, T("Export To..."), ".", "PDF (*.pdf)", "Encrypted Diary (*.pdf)", 0)
+	filename := widgets.QFileDialog_GetSaveFileName(s.window, T("Export To..."), "out.pdf", "PDF (*.pdf)", "Encrypted Diary (*.pdf)", 0)
 	if !strings.HasSuffix(strings.ToLower(filename), ".pdf") {
 		filename = filename + ".pdf"
 	}
