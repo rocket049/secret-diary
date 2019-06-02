@@ -549,10 +549,11 @@ func (s *myWindow) createEditor() widgets.QWidget_ITF {
 	width := mtr.Height() * 40
 	s.editor.SetTabStopWidth(mtr.Height() * 2)
 	s.editor.SetFixedWidth(width)
+
 	s.editor.SetSizePolicy2(widgets.QSizePolicy__Fixed, widgets.QSizePolicy__Expanding)
 
 	scrollarea.ConnectResizeEvent(func(e *gui.QResizeEvent) {
-		frame.SetFixedSize(core.NewQSize2(width+30, scrollarea.Geometry().Height()))
+		frame.SetFixedSize(core.NewQSize2(width+40, scrollarea.Geometry().Height()))
 	})
 
 	grid.AddWidget(s.editor, 0, 0, 0)
