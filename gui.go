@@ -533,7 +533,7 @@ func (s *myWindow) createLeftArea() widgets.QWidget_ITF {
 func (s *myWindow) createEditor() widgets.QWidget_ITF {
 	scrollarea := widgets.NewQScrollArea(s.window)
 	scrollarea.SetHorizontalScrollBarPolicy(core.Qt__ScrollBarAsNeeded)
-	scrollarea.SetVerticalScrollBarPolicy(core.Qt__ScrollBarAlwaysOn)
+	scrollarea.SetVerticalScrollBarPolicy(core.Qt__ScrollBarAlwaysOff)
 	scrollarea.SetAlignment(core.Qt__AlignCenter)
 	scrollarea.SetSizePolicy2(widgets.QSizePolicy__Expanding, widgets.QSizePolicy__Expanding)
 	frame := widgets.NewQFrame(s.window, core.Qt__Widget)
@@ -553,7 +553,7 @@ func (s *myWindow) createEditor() widgets.QWidget_ITF {
 	s.editor.SetSizePolicy2(widgets.QSizePolicy__Fixed, widgets.QSizePolicy__Expanding)
 
 	scrollarea.ConnectResizeEvent(func(e *gui.QResizeEvent) {
-		frame.SetFixedSize(core.NewQSize2(width+40, scrollarea.Geometry().Height()))
+		frame.SetFixedSize(core.NewQSize2(width+40, scrollarea.Geometry().Height()-10))
 	})
 
 	grid.AddWidget(s.editor, 0, 0, 0)
