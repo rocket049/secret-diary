@@ -290,3 +290,12 @@ msgstr "双击打开。"
 
 msgid "Result List"
 msgstr "搜索结果"
+
+msgid "Support Author"
+msgstr "支持作者"
+
+msgid "You can backup the directory yourself."
+msgstr "你可以自行备份该目录。"
+
+msgid "Pay Voluntary!"
+msgstr "支付多少全凭自愿！"

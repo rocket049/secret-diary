@@ -178,12 +178,17 @@ func (s *myWindow) setMenuBar() {
 
 	bak := menu.AddAction(T("Backup"))
 	bak.ConnectTriggered(func(b bool) {
-		s.showMsg(T("Backup"), T("Your DATA storge path is '")+dataDir+"'\nYou can backup the directory yourself.")
+		s.showMsg(T("Backup"), T("Your DATA storge path is '")+dataDir+"'\n"+T("You can backup the directory yourself."))
 	})
 
 	pwd := menu.AddAction(T("Password"))
 	pwd.ConnectTriggered(func(b bool) {
 		s.showMsg(T("Password"), T("There is no way to recover password. \nPlease write it on paper!"))
+	})
+
+	support := menu.AddAction(T("Support Author"))
+	support.ConnectTriggered(func(b bool) {
+		s.showPay()
 	})
 
 }
@@ -1415,6 +1420,30 @@ func (s *myWindow) showMsg(title, msg string) {
 	dlg := widgets.NewQMessageBox(s.window)
 	dlg.SetWindowTitle(title)
 	dlg.SetText(msg)
+
+	dlg.Exec()
+	dlg.Destroy(true, true)
+}
+
+func (s *myWindow) showPay() {
+	dlg := widgets.NewQDialog(s.window, core.Qt__Dialog)
+	dlg.SetWindowTitle(T("Pay Voluntary!"))
+	box := widgets.NewQHBoxLayout2(dlg)
+	height := 512
+
+	labelAli := widgets.NewQLabel(dlg, core.Qt__Widget)
+	img1 := gui.NewQPixmap5(":/qml/pay/alipay.png", "png", core.Qt__NoFormatConversion)
+	img1 = img1.ScaledToHeight(height, core.Qt__SmoothTransformation)
+	labelAli.SetPixmap(img1)
+	box.AddWidget(labelAli, 1, 0)
+
+	labelWx := widgets.NewQLabel(dlg, core.Qt__Widget)
+	img2 := gui.NewQPixmap5(":/qml/pay/wxpay.png", "png", core.Qt__NoFormatConversion)
+	img2 = img2.ScaledToHeight(height, core.Qt__SmoothTransformation)
+	labelWx.SetPixmap(img2)
+	box.AddWidget(labelWx, 1, 0)
+
+	dlg.SetLayout(box)
 
 	dlg.Exec()
 	dlg.Destroy(true, true)
