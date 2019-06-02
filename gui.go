@@ -771,7 +771,7 @@ func (s *myWindow) diaryPopup(idx *core.QModelIndex, e *gui.QMouseEvent) {
 	delItem := menu.AddAction(T("Delete"))
 	delItem.ConnectTriggered(func(checked bool) {
 		dlg := widgets.NewQMessageBox(s.window)
-		dlg.SetWindowTitle(T("Confirm"))
+		dlg.SetWindowTitle(T("Confirm Delete"))
 		dlg.SetText(T("Are you sure?"))
 		dlg.SetIcon(widgets.QMessageBox__Question)
 		dlg.SetStandardButtons(widgets.QMessageBox__Yes | widgets.QMessageBox__Cancel)

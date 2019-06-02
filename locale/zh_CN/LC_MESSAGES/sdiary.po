@@ -299,3 +299,6 @@ msgstr "你可以自行备份该目录。"
 
 msgid "Pay Voluntary!"
 msgstr "支付多少全凭自愿！"
+
+msgid "Confirm Delete"
+msgstr "确认删除"
