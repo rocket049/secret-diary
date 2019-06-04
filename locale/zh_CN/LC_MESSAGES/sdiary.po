@@ -302,3 +302,15 @@ msgstr "支付多少全凭自愿！"
 
 msgid "Confirm Delete"
 msgstr "确认删除"
+
+msgid "Import All"
+msgstr "导入备份"
+
+msgid "Export All"
+msgstr "备份全部"
+
+msgid "Select export directory"
+msgstr "选择导出目录"
+
+msgid "Select a bakup file"
+msgstr "选择备份文件"

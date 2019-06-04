@@ -98,6 +98,45 @@ func (s *myWindow) setMenuBar() {
 		s.importEncryptedDiary()
 	})
 
+	exportAll := menu.AddAction((T("Export All")))
+	exportAll.ConnectTriggered(func(b bool) {
+		home, _ := os.UserHomeDir()
+		dir := widgets.QFileDialog_GetExistingDirectory(s.window, T("Select export directory"), home, 0)
+		if len(dir) == 0 {
+			return
+		}
+		fromDir := filepath.Join(home, ".sdiary", s.user)
+		toFile := filepath.Join(home, s.user+".bak")
+		err := zipData(fromDir, toFile)
+		if err != nil {
+			widgets.QMessageBox_About(s.window, T("Error"), err.Error())
+		}
+	})
+
+	importAll := menu.AddAction(T("Import All"))
+	importAll.ConnectTriggered(func(b bool) {
+		home, _ := os.UserHomeDir()
+		filename := widgets.QFileDialog_GetOpenFileName(s.window, T("Select a bakup file"), home, ".bak (*.bak)", ".bak (*.bak)", 0)
+		if len(filename) == 0 {
+			return
+		}
+		var ok bool
+		pwd := widgets.QInputDialog_GetText(s.window, T("The password of the bakup file"), T("Password:"), widgets.QLineEdit__Password, "",
+			&ok, core.Qt__Dialog, core.Qt__ImhNone)
+		if len(filename) < 4 || !ok {
+			return
+		}
+		err := s.importFromZip(filename, pwd)
+		if err != nil {
+			widgets.QMessageBox_About(s.window, T("Error"), err.Error())
+		}
+
+		s.model.Clear()
+		s.model.SetHorizontalHeaderLabels([]string{T("Diary List")})
+
+		s.addYearMonthsFromDb()
+	})
+
 	menu = menubar.AddMenu2(T("Table"))
 
 	newTable := menu.AddAction(T("Insert Table"))
@@ -426,17 +465,6 @@ func (s *myWindow) Create(app *widgets.QApplication) {
 
 	s.window.SetCentralWidget(frame)
 
-	// s.tree = widgets.NewQTreeView(s.window)
-	// s.tree.SetFixedWidth(240)
-	// s.tree.SetSizePolicy2(widgets.QSizePolicy__Preferred, widgets.QSizePolicy__Expanding)
-	// s.tree.SetHorizontalScrollBarPolicy(core.Qt__ScrollBarAsNeeded)
-	// s.tree.SetAutoScroll(true)
-	// s.model = gui.NewQStandardItemModel2(0, 1, s.tree)
-	// s.model.SetHorizontalHeaderLabels([]string{T("Diary List")})
-
-	// s.tree.SetModel(s.model)
-
-	// grid.AddWidget3(s.tree, 0, 0, 2, 1, 0)
 	leftArea := s.createLeftArea()
 	grid.AddWidget3(leftArea, 0, 0, 2, 1, 0)
 
@@ -838,6 +866,9 @@ func (s *myWindow) setTreeFuncs() {
 	s.tree.SetSelectionMode(widgets.QAbstractItemView__SingleSelection)
 
 	s.tree.ConnectMouseReleaseEvent(func(e *gui.QMouseEvent) {
+		if s.model.RowCount(core.NewQModelIndex()) == 0 {
+			return
+		}
 
 		idx := s.tree.IndexAt(e.Pos())
 

@@ -178,3 +178,20 @@ func decodeFromPathName(filename string, key []byte) ([]byte, error) {
 	_, err = io.Copy(res, rd)
 	return res.Bytes(), err
 }
+
+func decodeFromReader(reader io.Reader, key []byte) ([]byte, error) {
+	aesBlock, err := aes.NewCipher(key)
+	if err != nil {
+		return nil, err
+	}
+	iv := make([]byte, aesBlock.BlockSize())
+	_, err = io.ReadFull(reader, iv)
+	if err != nil {
+		return nil, err
+	}
+	aesStream := cipher.NewCTR(aesBlock, iv)
+	rd := cipher.StreamReader{S: aesStream, R: reader}
+	res := bytes.NewBufferString("")
+	_, err = io.Copy(res, rd)
+	return res.Bytes(), err
+}
