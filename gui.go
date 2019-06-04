@@ -866,11 +866,10 @@ func (s *myWindow) setTreeFuncs() {
 	s.tree.SetSelectionMode(widgets.QAbstractItemView__SingleSelection)
 
 	s.tree.ConnectMouseReleaseEvent(func(e *gui.QMouseEvent) {
-		if s.model.RowCount(core.NewQModelIndex()) == 0 {
+		idx := s.tree.IndexAt(e.Pos())
+		if !idx.IsValid() {
 			return
 		}
-
-		idx := s.tree.IndexAt(e.Pos())
 
 		switch e.Button() {
 		case core.Qt__LeftButton:
