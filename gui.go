@@ -58,6 +58,8 @@ type myWindow struct {
 	exportEnc           *widgets.QAction
 	exportPdf           *widgets.QAction
 	importEnc           *widgets.QAction
+	search              *widgets.QAction
+	replace             *widgets.QAction
 	newDiary            *widgets.QAction
 	saveDiary           *widgets.QAction
 	renDiary            *widgets.QAction
@@ -135,6 +137,19 @@ func (s *myWindow) setMenuBar() {
 		s.model.SetHorizontalHeaderLabels([]string{T("Diary List")})
 
 		s.addYearMonthsFromDb()
+	})
+
+	menu = menubar.AddMenu2(T("Edit"))
+	s.search = menu.AddAction(T("Search"))
+	s.search.SetShortcut(gui.QKeySequence_FromString("Ctrl+f", gui.QKeySequence__NativeText))
+	s.search.ConnectTriggered(func(b bool) {
+		s.findText()
+	})
+
+	s.replace = menu.AddAction(T("Replace"))
+	s.replace.SetShortcut(gui.QKeySequence_FromString("Ctrl+r", gui.QKeySequence__NativeText))
+	s.replace.ConnectTriggered(func(b bool) {
+		s.replaceText()
 	})
 
 	menu = menubar.AddMenu2(T("Table"))
@@ -888,8 +903,8 @@ func (s *myWindow) setTitle(v string) {
 	var cfmt = gui.NewQTextCharFormat()
 	cfmt.SetFontPointSize(18)
 	cfmt.SetForeground(gui.NewQBrush3(gui.NewQColor2(core.Qt__blue), core.Qt__SolidPattern))
-
-	s.editor.MergeCurrentCharFormat(cfmt)
+	s.editor.SetCurrentCharFormat(cfmt)
+	//s.editor.MergeCurrentCharFormat(cfmt)
 	s.editor.SetAlignment(core.Qt__AlignHCenter)
 
 	cursor := s.editor.TextCursor()
@@ -959,6 +974,11 @@ func (s *myWindow) setEditorFuncs() {
 				}
 			})
 		}
+
+		//add search
+
+		menu.QWidget.AddAction(s.search)
+		menu.QWidget.AddAction(s.replace)
 
 		menu.Popup(e.GlobalPos(), nil)
 	})

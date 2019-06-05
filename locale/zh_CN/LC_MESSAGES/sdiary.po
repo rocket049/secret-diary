@@ -314,3 +314,33 @@ msgstr "选择导出目录"
 
 msgid "Select a bakup file"
 msgstr "选择备份文件"
+
+msgid "Text Replace"
+msgstr "文本替换"
+
+msgid "Text Search"
+msgstr "文本搜索"
+
+msgid "Last"
+msgstr "上一个"
+
+msgid "Next"
+msgstr "下一个"
+
+msgid "All"
+msgstr "全部"
+
+msgid "Words to search."
+msgstr "查找文字"
+
+msgid "Old Text."
+msgstr "旧文字"
+
+msgid "New Text."
+msgstr "新文字"
+
+msgid "Edit"
+msgstr "编辑"
+
+msgid "Replace"
+msgstr "替换"

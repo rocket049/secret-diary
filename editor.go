@@ -516,9 +516,7 @@ func (s *myWindow) OpenNewWindow(parent *myWindow, id int) {
 	s.renDiary.SetDisabled(true)
 	s.modifyPwd.SetDisabled(true)
 
-	s.saveDiary.ConnectTriggered(func(b bool) {
-		s.saveDiaryAlone()
-	})
+	s.setStandaloneFuncs()
 
 	frame.SetLayout(grid)
 
@@ -640,4 +638,181 @@ func (s *myWindow) setTreeFindFuncs() {
 		}
 		OpenDiaryNewWindow(s, id)
 	})
+}
+
+func (s *myWindow) findText() {
+	dlg := widgets.NewQDialog(s.window, core.Qt__Dialog)
+	dlg.SetMinimumWidth(s.editor.Width() / 2)
+
+	dlg.SetWindowTitle(T("Text Search"))
+
+	grid := widgets.NewQGridLayout(dlg)
+
+	word := widgets.NewQLineEdit(dlg)
+	word.SetPlaceholderText(T("Words to search."))
+	grid.AddWidget3(word, 0, 0, 1, 2, 0)
+
+	backBtn := widgets.NewQPushButton2(T("Last"), dlg)
+	grid.AddWidget(backBtn, 1, 0, 0)
+
+	nextBtn := widgets.NewQPushButton2(T("Next"), dlg)
+	grid.AddWidget(nextBtn, 1, 1, 0)
+
+	dlg.SetLayout(grid)
+
+	backBtn.ConnectClicked(func(b bool) {
+		kw := strings.TrimSpace(word.Text())
+		if len(kw) == 0 {
+			return
+		}
+		cursor := s.editor.TextCursor()
+		if len(cursor.Selection().ToPlainText()) > 0 {
+			cursor.SetPosition(cursor.SelectionStart(), gui.QTextCursor__MoveAnchor)
+			s.editor.SetTextCursor(cursor)
+		}
+		s.editor.Find(kw, gui.QTextDocument__FindBackward)
+	})
+
+	nextBtn.ConnectClicked(func(b bool) {
+		kw := strings.TrimSpace(word.Text())
+		if len(kw) == 0 {
+			return
+		}
+		cursor := s.editor.TextCursor()
+		if len(cursor.Selection().ToPlainText()) > 0 {
+			cursor.SetPosition(cursor.SelectionEnd(), gui.QTextCursor__MoveAnchor)
+			s.editor.SetTextCursor(cursor)
+		}
+		s.editor.Find(kw, 0)
+	})
+
+	dlg.ConnectCloseEvent(func(e *gui.QCloseEvent) {
+		dlg.Destroy(true, true)
+	})
+
+	dlg.Show()
+}
+
+func (s *myWindow) replaceText() {
+	dlg := widgets.NewQDialog(s.window, core.Qt__Dialog)
+	dlg.SetMinimumWidth(s.editor.Width() / 2)
+
+	dlg.SetWindowTitle(T("Text Replace"))
+
+	grid := widgets.NewQGridLayout(dlg)
+
+	wordOld := widgets.NewQLineEdit(dlg)
+	wordOld.SetPlaceholderText(T("Old Text."))
+	wordOld.SetToolTip(T("Old Text."))
+	grid.AddWidget3(wordOld, 0, 0, 1, 3, 0)
+
+	wordNew := widgets.NewQLineEdit(dlg)
+	wordNew.SetPlaceholderText(T("New Text."))
+	wordNew.SetToolTip(T("New Text."))
+	grid.AddWidget3(wordNew, 1, 0, 1, 3, 0)
+
+	backBtn := widgets.NewQPushButton2(T("Last"), dlg)
+	grid.AddWidget(backBtn, 2, 0, 0)
+
+	nextBtn := widgets.NewQPushButton2(T("Next"), dlg)
+	grid.AddWidget(nextBtn, 2, 1, 0)
+
+	allBtn := widgets.NewQPushButton2(T("All"), dlg)
+	grid.AddWidget(allBtn, 2, 2, 0)
+
+	dlg.SetLayout(grid)
+
+	backBtn.ConnectClicked(func(b bool) {
+		word0 := wordOld.Text()
+		word1 := wordNew.Text()
+		if len(word0) == 0 {
+			return
+		}
+		cursor := s.editor.TextCursor()
+		if cursor.Selection().ToPlainText() == word0 {
+			cursor.RemoveSelectedText()
+			cursor.InsertText(word1)
+
+			cursor.SetPosition(cursor.Position()-len(word1), gui.QTextCursor__MoveAnchor)
+			s.editor.SetTextCursor(cursor)
+		}
+
+		s.editor.Find(word0, gui.QTextDocument__FindBackward)
+	})
+
+	nextBtn.ConnectClicked(func(b bool) {
+		word0 := wordOld.Text()
+		word1 := wordNew.Text()
+		if len(word0) == 0 {
+			return
+		}
+		cursor := s.editor.TextCursor()
+
+		if cursor.Selection().ToPlainText() == word0 {
+			cursor.RemoveSelectedText()
+			cursor.InsertText(word1)
+		}
+		s.editor.Find(word0, 0)
+	})
+
+	allBtn.ConnectClicked(func(b bool) {
+		word0 := wordOld.Text()
+		if len(word0) == 0 {
+			return
+		}
+		text := s.editor.ToPlainText()
+		n := strings.Count(strings.ToLower(text), strings.ToLower(word0))
+
+		cursor := s.editor.TextCursor()
+		cursor.SetPosition(0, gui.QTextCursor__MoveAnchor)
+		s.editor.SetTextCursor(cursor)
+
+		for i := 0; i < n+1; i++ {
+			nextBtn.Clicked(true)
+		}
+	})
+
+	dlg.ConnectCloseEvent(func(e *gui.QCloseEvent) {
+		dlg.Destroy(true, true)
+	})
+
+	dlg.Show()
+}
+
+func (s *myWindow) setStandaloneFuncs() {
+
+	s.saveDiary.ConnectTriggered(func(b bool) {
+		s.saveDiaryAlone()
+	})
+
+	s.editor.ConnectContextMenuEvent(func(e *gui.QContextMenuEvent) {
+
+		menu := s.editor.CreateStandardContextMenu()
+
+		imgUrl := s.getSelectedImage()
+		if len(imgUrl) > 0 {
+			//addaction export image
+			act := menu.AddAction(T("Export Image As..."))
+			act.ConnectTriggered(func(b bool) {
+				ext := filepath.Ext(imgUrl)
+				filter := fmt.Sprintf("%s Image (*%s)", ext, ext)
+				filename := widgets.QFileDialog_GetSaveFileName(s.window, T("Export Image As..."), filepath.Base(imgUrl), filter, filter, 0)
+				if strings.HasSuffix(filename, ext) == false {
+					filename = filename + ext
+				}
+
+				if len(filename) > 0 {
+					ioutil.WriteFile(filename, s.document.Images[imgUrl], 0644)
+				}
+			})
+		}
+
+		//add search
+
+		menu.QWidget.AddAction(s.search)
+		menu.QWidget.AddAction(s.replace)
+
+		menu.Popup(e.GlobalPos(), nil)
+	})
+
 }
