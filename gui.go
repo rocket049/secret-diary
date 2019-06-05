@@ -584,7 +584,6 @@ func (s *myWindow) createEditor() widgets.QWidget_ITF {
 	s.editor = widgets.NewQTextEdit(s.window)
 	s.editor.SetSizePolicy2(widgets.QSizePolicy__Fixed, widgets.QSizePolicy__Expanding)
 	s.editor.SetTabChangesFocus(false)
-	s.editor.SetFontPointSize(14)
 	s.editor.SetReadOnly(true)
 
 	font := s.editor.Font()
@@ -903,26 +902,27 @@ func (s *myWindow) setTitle(v string) {
 	var cfmt = gui.NewQTextCharFormat()
 	cfmt.SetFontPointSize(18)
 	cfmt.SetForeground(gui.NewQBrush3(gui.NewQColor2(core.Qt__blue), core.Qt__SolidPattern))
-	s.editor.SetCurrentCharFormat(cfmt)
-	//s.editor.MergeCurrentCharFormat(cfmt)
+
+	s.editor.SetFontPointSize(18)
+
 	s.editor.SetAlignment(core.Qt__AlignHCenter)
 
 	cursor := s.editor.TextCursor()
+	cursor.SetCharFormat(cfmt)
 	cursor.InsertText(v)
 
-	//cursor.MovePosition(gui.QTextCursor__End, gui.QTextCursor__KeepAnchor, 0)
 	cursor.InsertText("\n")
+	s.editor.SetTextCursor(cursor)
+
 	var afmt = gui.NewQTextCharFormat()
 	afmt.SetForeground(gui.NewQBrush3(gui.NewQColor2(core.Qt__black), core.Qt__SolidPattern))
 	afmt.SetFontPointSize(14)
 
-	s.mergeFormatOnLineOrSelection(afmt)
-
 	s.editor.SetAlignment(core.Qt__AlignLeft | core.Qt__AlignAbsolute)
 
-	cursor.InsertText("\n")
-
-	//cursor.EndEditBlock()
+	cursor.InsertText("\n\t")
+	s.mergeFormatOnLineOrSelection(afmt)
+	s.editor.SetTextCursor(cursor)
 }
 
 func (s *myWindow) setEditorFuncs() {
@@ -935,9 +935,8 @@ func (s *myWindow) setEditorFuncs() {
 		if s.curDiary.Item == nil {
 			return
 		}
-		//curDiary.Modified = true
+
 		disp1 := s.curDiary.Day + "-" + strings.TrimSpace(s.editor.Document().FirstBlock().Text())
-		//fmt.Println(disp1)
 
 		disp0 := s.curDiary.Item.Text()
 		if disp0 != disp1 {
@@ -948,6 +947,13 @@ func (s *myWindow) setEditorFuncs() {
 			p.SetChild(pos.Row(), pos.Column(), s.curDiary.Item)
 			s.tree.SetCurrentIndex(s.curDiary.Item.Index())
 			s.tree.ResizeColumnToContents(0)
+			if s.editor.CurrentCharFormat().FontPointSize() != 18 {
+				var cfmt = gui.NewQTextCharFormat()
+				cfmt.SetFontPointSize(18)
+				cfmt.SetForeground(gui.NewQBrush3(gui.NewQColor2(core.Qt__blue), core.Qt__SolidPattern))
+				s.mergeFormatOnLineOrSelection(cfmt)
+			}
+
 			s.editor.Document().SetModified(true)
 		}
 
