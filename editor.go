@@ -641,6 +641,11 @@ func (s *myWindow) setTreeFindFuncs() {
 }
 
 func (s *myWindow) findText() {
+	if s.searchInput != nil {
+		cursor := s.editor.TextCursor()
+		s.searchInput.SetText(cursor.Selection().ToPlainText())
+		return
+	}
 	dlg := widgets.NewQDialog(s.window, core.Qt__Dialog)
 	dlg.SetMinimumWidth(s.editor.Width() / 2)
 
@@ -651,6 +656,9 @@ func (s *myWindow) findText() {
 	word := widgets.NewQLineEdit(dlg)
 	word.SetPlaceholderText(T("Words to search."))
 	grid.AddWidget3(word, 0, 0, 1, 2, 0)
+	s.searchInput = word
+	cursor := s.editor.TextCursor()
+	s.searchInput.SetText(cursor.Selection().ToPlainText())
 
 	backBtn := widgets.NewQPushButton2(T("Last"), dlg)
 	grid.AddWidget(backBtn, 1, 0, 0)
@@ -688,12 +696,19 @@ func (s *myWindow) findText() {
 
 	dlg.ConnectCloseEvent(func(e *gui.QCloseEvent) {
 		dlg.Destroy(true, true)
+		s.searchInput = nil
 	})
 
 	dlg.Show()
 }
 
 func (s *myWindow) replaceText() {
+	if s.replaceInput != nil {
+		cursor := s.editor.TextCursor()
+		s.replaceInput.SetText(cursor.Selection().ToPlainText())
+		return
+	}
+
 	dlg := widgets.NewQDialog(s.window, core.Qt__Dialog)
 	dlg.SetMinimumWidth(s.editor.Width() / 2)
 
@@ -705,6 +720,9 @@ func (s *myWindow) replaceText() {
 	wordOld.SetPlaceholderText(T("Old Text."))
 	wordOld.SetToolTip(T("Old Text."))
 	grid.AddWidget3(wordOld, 0, 0, 1, 3, 0)
+	s.replaceInput = wordOld
+	cursor := s.editor.TextCursor()
+	s.replaceInput.SetText(cursor.Selection().ToPlainText())
 
 	wordNew := widgets.NewQLineEdit(dlg)
 	wordNew.SetPlaceholderText(T("New Text."))
@@ -774,6 +792,7 @@ func (s *myWindow) replaceText() {
 
 	dlg.ConnectCloseEvent(func(e *gui.QCloseEvent) {
 		dlg.Destroy(true, true)
+		s.replaceInput = nil
 	})
 
 	dlg.Show()

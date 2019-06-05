@@ -60,6 +60,8 @@ type myWindow struct {
 	importEnc           *widgets.QAction
 	search              *widgets.QAction
 	replace             *widgets.QAction
+	searchInput         *widgets.QLineEdit
+	replaceInput        *widgets.QLineEdit
 	newDiary            *widgets.QAction
 	saveDiary           *widgets.QAction
 	renDiary            *widgets.QAction
@@ -486,7 +488,7 @@ func (s *myWindow) Create(app *widgets.QApplication) {
 	editor := s.createEditor()
 	w := s.tree.Width() + s.editor.Width() + 100
 	s.window.SetMinimumWidth(w)
-	s.window.SetMinimumHeight(w * 3 / 4)
+	s.window.SetMinimumHeight(w * 2 / 3)
 	grid.AddWidget3(editor, 0, 1, 1, 1, 0)
 
 	comboBox := s.setupComboAttachs()
@@ -529,10 +531,17 @@ func (s *myWindow) Create(app *widgets.QApplication) {
 func (s *myWindow) createLeftArea() widgets.QWidget_ITF {
 	spliter := widgets.NewQSplitter(nil)
 	spliter.SetOrientation(core.Qt__Vertical)
+	spliter.SetSizePolicy2(widgets.QSizePolicy__Fixed, widgets.QSizePolicy__Expanding)
+	font := gui.NewQFont()
+	font.SetPointSize(14)
+	mtr := gui.NewQFontMetrics(font)
+	mwidth := mtr.Height() * 15
+	spliter.SetFixedWidth(mwidth)
+
 	s.tree = widgets.NewQTreeView(s.window)
 	s.tree.SetMinimumWidth(240)
 	s.tree.SetMinimumHeight(400)
-	s.tree.SetSizePolicy2(widgets.QSizePolicy__Preferred, widgets.QSizePolicy__Expanding)
+	s.tree.SetSizePolicy2(widgets.QSizePolicy__Expanding, widgets.QSizePolicy__Expanding)
 	s.tree.SetHorizontalScrollBarPolicy(core.Qt__ScrollBarAsNeeded)
 	s.tree.SetAutoScroll(true)
 	s.model = gui.NewQStandardItemModel2(0, 1, s.tree)
@@ -555,9 +564,9 @@ func (s *myWindow) createLeftArea() widgets.QWidget_ITF {
 	})
 
 	s.treeFind = widgets.NewQTreeView(s.window)
-	s.treeFind.SetFixedWidth(240)
+	s.treeFind.SetMinimumWidth(240)
 
-	s.treeFind.SetSizePolicy2(widgets.QSizePolicy__Preferred, widgets.QSizePolicy__Preferred)
+	s.treeFind.SetSizePolicy2(widgets.QSizePolicy__Expanding, widgets.QSizePolicy__Preferred)
 	s.treeFind.SetHorizontalScrollBarPolicy(core.Qt__ScrollBarAsNeeded)
 	s.treeFind.SetAutoScroll(true)
 	s.modelFind = gui.NewQStandardItemModel2(0, 1, s.treeFind)
@@ -566,7 +575,7 @@ func (s *myWindow) createLeftArea() widgets.QWidget_ITF {
 	grid.AddWidget3(s.treeFind, 1, 0, 1, 2, 0)
 	search.SetLayout(grid)
 	search.SetMinimumHeight(100)
-	search.SetSizePolicy2(widgets.QSizePolicy__Preferred, widgets.QSizePolicy__Minimum)
+	search.SetSizePolicy2(widgets.QSizePolicy__Expanding, widgets.QSizePolicy__Minimum)
 	spliter.AddWidget(search)
 
 	s.setTreeFindFuncs()
@@ -578,7 +587,7 @@ func (s *myWindow) createEditor() widgets.QWidget_ITF {
 	scrollarea.SetHorizontalScrollBarPolicy(core.Qt__ScrollBarAsNeeded)
 	scrollarea.SetVerticalScrollBarPolicy(core.Qt__ScrollBarAlwaysOff)
 	scrollarea.SetAlignment(core.Qt__AlignCenter)
-	scrollarea.SetSizePolicy2(widgets.QSizePolicy__Expanding, widgets.QSizePolicy__Expanding)
+	scrollarea.SetSizePolicy2(widgets.QSizePolicy__Preferred, widgets.QSizePolicy__Expanding)
 	frame := widgets.NewQFrame(s.window, core.Qt__Widget)
 	grid := widgets.NewQGridLayout2()
 	s.editor = widgets.NewQTextEdit(s.window)
@@ -586,19 +595,23 @@ func (s *myWindow) createEditor() widgets.QWidget_ITF {
 	s.editor.SetTabChangesFocus(false)
 	s.editor.SetReadOnly(true)
 
-	font := s.editor.Font()
+	font := gui.NewQFont()
+	font.SetPointSize(14)
 	mtr := gui.NewQFontMetrics(font)
-	width := mtr.Height() * 40
+	width := mtr.Height() * 35
 	s.editor.SetTabStopWidth(mtr.Height() * 2)
 	s.editor.SetFixedWidth(width)
+
+	scrollarea.SetMinimumWidth(width + 100)
 
 	s.editor.SetSizePolicy2(widgets.QSizePolicy__Fixed, widgets.QSizePolicy__Expanding)
 
 	scrollarea.ConnectResizeEvent(func(e *gui.QResizeEvent) {
-		frame.SetFixedSize(core.NewQSize2(width+40, scrollarea.Geometry().Height()-10))
+		frame.SetMinimumSize(core.NewQSize2(width+40, scrollarea.Geometry().Height()-10))
 	})
 
 	grid.AddWidget(s.editor, 0, 0, 0)
+	grid.SetAlign(core.Qt__AlignHCenter)
 	frame.SetLayout(grid)
 	scrollarea.SetWidget(frame)
 
