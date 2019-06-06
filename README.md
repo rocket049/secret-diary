@@ -19,8 +19,8 @@
 - 点击确定
 
 ### 删除
-1. 如何删除多余的用户？只需到数据存储目录中删除对应名字的目录。
-2. 数据存储目录在哪里？点击“帮助”菜单中的“备份”，会显示该目录路径。
+1. 如何删除多余的用户？只需到数据存储目录中删除对应名字的目录。How to delete redundant users? Just go to the data storage directory and delete the directory with the corresponding name.
+2. 数据存储目录在哪里？点击“帮助”菜单中的“备份”，会显示该目录路径。Where is the data storage directory? Click Backup on the Help menu to display the directory path.
 
 # 加密算法说明
 
