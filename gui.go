@@ -492,7 +492,7 @@ func (s *myWindow) Create(app *widgets.QApplication) {
 	grid.AddWidget3(leftArea, 0, 0, 2, 1, 0)
 
 	editor := s.createEditor()
-	w := s.tree.Width() + s.editor.Width() + 100
+	w := s.tree.Width() + s.editor.Width() + 160
 	s.window.SetMinimumWidth(w)
 	s.window.SetMinimumHeight(w * 2 / 3)
 	grid.AddWidget3(editor, 0, 1, 1, 1, 0)
