@@ -58,6 +58,7 @@ type myWindow struct {
 	exportEnc           *widgets.QAction
 	exportPdf           *widgets.QAction
 	importEnc           *widgets.QAction
+	paste               *widgets.QAction
 	search              *widgets.QAction
 	replace             *widgets.QAction
 	searchInput         *widgets.QLineEdit
@@ -142,6 +143,11 @@ func (s *myWindow) setMenuBar() {
 	})
 
 	menu = menubar.AddMenu2(T("Edit"))
+	s.paste = menu.AddAction(T("Paste Text"))
+	s.paste.ConnectTriggered(func(b bool) {
+		s.pasteText()
+	})
+
 	s.search = menu.AddAction(T("Search"))
 	s.search.SetShortcut(gui.QKeySequence_FromString("Ctrl+f", gui.QKeySequence__NativeText))
 	s.search.ConnectTriggered(func(b bool) {
@@ -995,7 +1001,7 @@ func (s *myWindow) setEditorFuncs() {
 		}
 
 		//add search
-
+		menu.QWidget.AddAction(s.paste)
 		menu.QWidget.AddAction(s.search)
 		menu.QWidget.AddAction(s.replace)
 

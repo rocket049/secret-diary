@@ -827,11 +827,18 @@ func (s *myWindow) setStandaloneFuncs() {
 		}
 
 		//add search
-
+		menu.QWidget.AddAction(s.paste)
 		menu.QWidget.AddAction(s.search)
 		menu.QWidget.AddAction(s.replace)
 
 		menu.Popup(e.GlobalPos(), nil)
 	})
 
+}
+
+func (s *myWindow) pasteText() {
+	board := gui.QGuiApplication_Clipboard()
+	text := board.Text(gui.QClipboard__Clipboard)
+	cursor := s.editor.TextCursor()
+	cursor.InsertText(text)
 }

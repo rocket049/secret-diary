@@ -344,3 +344,6 @@ msgstr "编辑"
 
 msgid "Replace"
 msgstr "替换"
+
+msgid "Paste Text"
+msgstr "粘帖纯文本"
