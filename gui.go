@@ -1190,6 +1190,26 @@ func (s *myWindow) updatePwd() {
 	dlg.Show()
 }
 
+func (s *myWindow) getUsers() []string {
+	home, _ := os.UserHomeDir()
+	dir := filepath.Join(home, ".sdiary")
+	hdir, err := os.Open(dir)
+	if err != nil {
+		return []string{}
+	}
+	dirs, err := hdir.Readdir(-1)
+	if err != nil {
+		return nil
+	}
+	res := []string{}
+	for _, v := range dirs {
+		if v.IsDir() {
+			res = append(res, v.Name())
+		}
+	}
+	return res
+}
+
 func (s *myWindow) login() {
 	dlg := widgets.NewQDialog(s.window, core.Qt__Dialog)
 	dlg.SetWindowTitle(T("Login"))
@@ -1199,8 +1219,12 @@ func (s *myWindow) login() {
 	name := widgets.NewQLabel2(T("Name:"), dlg, core.Qt__Widget)
 	grid.AddWidget(name, 0, 0, 0)
 
-	nameInput := widgets.NewQLineEdit(dlg)
-	nameInput.SetText(s.lastUser())
+	nameInput := widgets.NewQComboBox(dlg)
+	nameInput.SetEditable(true)
+
+	nameInput.AddItems(s.getUsers())
+	nameInput.SetCurrentText(s.lastUser())
+
 	grid.AddWidget(nameInput, 0, 1, 0)
 
 	pwd := widgets.NewQLabel2(T("Password:"), dlg, core.Qt__Widget)
@@ -1210,7 +1234,7 @@ func (s *myWindow) login() {
 	pwdInput := widgets.NewQLineEdit(dlg)
 	pwdInput.SetEchoMode(widgets.QLineEdit__Password)
 	pwdInput.SetPlaceholderText(T("Length Must >= 4"))
-	if len(nameInput.Text()) > 0 {
+	if len(nameInput.CurrentText()) > 0 {
 		pwdInput.SetFocus2()
 	}
 	grid.AddWidget(pwdInput, 1, 1, 0)
@@ -1237,10 +1261,10 @@ func (s *myWindow) login() {
 
 	okBtn.ConnectClicked(func(b bool) {
 		var err error
-		if len(pwdInput.Text()) < minLen || len(nameInput.Text()) < 1 {
+		if len(pwdInput.Text()) < minLen || len(nameInput.CurrentText()) < 1 {
 			return
 		}
-		s.db, err = getMyDb(nameInput.Text())
+		s.db, err = getMyDb(nameInput.CurrentText())
 		if err != nil {
 			widgets.QMessageBox_Information(dlg, T("Information"), T("Fail")+err.Error(), widgets.QMessageBox__Ok, widgets.QMessageBox__Ok)
 			dlg.Hide()
@@ -1252,21 +1276,21 @@ func (s *myWindow) login() {
 			dlg.Hide()
 			s.window.Close()
 		}
-		s.saveLastUser(nameInput.Text())
-		s.user = nameInput.Text()
-		s.window.SetWindowTitle(nameInput.Text())
+		s.saveLastUser(nameInput.CurrentText())
+		s.user = nameInput.CurrentText()
+		s.window.SetWindowTitle(nameInput.CurrentText())
 		dlg.Hide()
 
 	})
 
 	regBtn.ConnectClicked(func(b bool) {
-		if len(pwdInput.Text()) < minLen || len(nameInput.Text()) < 1 {
+		if len(pwdInput.Text()) < minLen || len(nameInput.CurrentText()) < 1 {
 			widgets.QMessageBox_Warning(s.window, T("Register"),
 				T("Please input the name and password to register before you click this button!"), widgets.QMessageBox__Ok, widgets.QMessageBox__Ok)
 			return
 		}
 		var ok bool
-		confirm := widgets.QInputDialog_GetText(dlg, T("Confirm"), T("Name:")+nameInput.Text(), widgets.QLineEdit__Password, "",
+		confirm := widgets.QInputDialog_GetText(dlg, T("Confirm"), T("Name:")+nameInput.CurrentText(), widgets.QLineEdit__Password, "",
 			&ok, core.Qt__Dialog, core.Qt__ImhNone)
 		if !ok {
 			return
@@ -1275,11 +1299,11 @@ func (s *myWindow) login() {
 			s.showMsg(T("Fail"), T("Password Not Match"))
 			return
 		}
-		err := createUserDb(nameInput.Text(), pwdInput.Text())
+		err := createUserDb(nameInput.CurrentText(), pwdInput.Text())
 		if err != nil {
 			panic(err)
 		}
-		s.db, err = getMyDb(nameInput.Text())
+		s.db, err = getMyDb(nameInput.CurrentText())
 		if err != nil {
 			panic(err)
 		}
@@ -1287,9 +1311,9 @@ func (s *myWindow) login() {
 		if err != nil {
 			panic(err)
 		}
-		s.saveLastUser(nameInput.Text())
-		s.user = nameInput.Text()
-		s.window.SetWindowTitle(nameInput.Text())
+		s.saveLastUser(nameInput.CurrentText())
+		s.user = nameInput.CurrentText()
+		s.window.SetWindowTitle(nameInput.CurrentText())
 		dlg.Hide()
 
 	})
