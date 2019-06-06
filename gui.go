@@ -238,9 +238,9 @@ func (s *myWindow) setMenuBar() {
 		s.showMsg(T("About"), T("Copy Right: Fu Huizhong <fuhuizn@163.com>\nSecurity Diary Tool.\nCrypto with AES256")+"\nHomepage: https://github.com/rocket049/secret-diary")
 	})
 
-	bak := menu.AddAction(T("Backup"))
+	bak := menu.AddAction(T("Backup & Delete"))
 	bak.ConnectTriggered(func(b bool) {
-		s.showMsg(T("Backup"), T("Your DATA storge path is '")+dataDir+"'\n"+T("You can backup the directory yourself."))
+		s.showMsg(T("Backup & Delete"), T("Your DATA storge path is '")+dataDir+"'\n"+T("You can backup and delete the directory yourself."))
 	})
 
 	pwd := menu.AddAction(T("Password"))

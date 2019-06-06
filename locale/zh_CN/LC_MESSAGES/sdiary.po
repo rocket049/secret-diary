@@ -65,8 +65,8 @@ msgstr "新密码"
 msgid "New"
 msgstr "新建"
 
-msgid "Backup"
-msgstr "备份"
+msgid "Backup & Delete"
+msgstr "备份和删除"
 
 msgid "Register"
 msgstr "注册"
@@ -294,8 +294,8 @@ msgstr "搜索结果"
 msgid "Support Author"
 msgstr "支持作者"
 
-msgid "You can backup the directory yourself."
-msgstr "你可以自行备份该目录。"
+msgid "You can backup and delete the directory yourself."
+msgstr "你可以自行备份或删除该目录。"
 
 msgid "Pay Voluntary!"
 msgstr "支付多少全凭自愿！"
