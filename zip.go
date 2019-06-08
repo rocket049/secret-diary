@@ -95,24 +95,26 @@ func (s *myWindow) importFromZip(filename string, pwd string) error {
 	defer os.Remove(diaryDbName)
 	defer db.Close()
 
-	res, err := db.Query("select cdate,title,filename from diaries")
+	res, err := db.Query("select cdate,title,filename,category from diaries")
 	if err != nil {
 		return err
 	}
 	//get filename title dict
 	type diaryRecod struct {
-		Cdate string
-		Title string
+		Cdate    string
+		Title    string
+		Category int
 	}
 	var titleDict = make(map[string]diaryRecod)
 	var cdate, title, fname string
+	var category int
 	for res.Next() {
-		err := res.Scan(&cdate, &title, &fname)
+		err := res.Scan(&cdate, &title, &fname, &category)
 		if err != nil {
 			res.Close()
 			return err
 		}
-		titleDict[fname] = diaryRecod{cdate, title}
+		titleDict[fname] = diaryRecod{cdate, title, category}
 	}
 	res.Close()
 	//get real key
@@ -143,7 +145,7 @@ func (s *myWindow) importFromZip(filename string, pwd string) error {
 		id := s.db.NextId()
 		datName := fmt.Sprintf("%d.dat", id)
 		encodeToFile(data, datName, s.key)
-		s.db.AddDiary(id, record.Cdate, record.Title, datName)
+		s.db.AddDiary2(id, record.Cdate, record.Title, datName, record.Category)
 	}
 	return nil
 }

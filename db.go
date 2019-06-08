@@ -14,7 +14,8 @@ import (
 )
 
 type myDb struct {
-	db *sql.DB
+	db       *sql.DB
+	category int
 }
 
 func createUserDb(name string, pwd string) error {
@@ -32,9 +33,9 @@ func createUserDb(name string, pwd string) error {
 	}
 	defer db.Close()
 	sqls := []string{"create table user (id integer unique,cdata text,sha40 TEXT not null,realkey text not null,mtime text);",
-		"create table diaries (id integer unique,cdate text,title text,filename text,mtime text);",
-		"create index idx1 on diaries(cdate);"}
-	//"create table months (ym text);"}
+		"create table diaries (id integer unique,cdate text,title text,filename text,mtime text,category int default 0);",
+		"create index idx1 on diaries(cdate);",
+		"create table categories(id int,name text);"}
 	for i := 0; i < len(sqls); i++ {
 		_, err = db.Exec(sqls[i])
 		if err != nil {
@@ -71,7 +72,30 @@ func getMyDb(name string) (*myDb, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &myDb{db: db}, nil
+	res := &myDb{db: db}
+	res.CheckAndUpgrade()
+	return res, nil
+}
+
+func (s *myDb) setCategory(c int) {
+	s.category = c
+}
+
+func (s *myDb) CheckAndUpgrade() error {
+	diaryStruct, err := s.db.Query("PRAGMA table_info(diaries);")
+	if err != nil {
+		return err
+	}
+	var rows = 0
+	for diaryStruct.Next() {
+		rows++
+	}
+	diaryStruct.Close()
+	if rows == 5 {
+		s.db.Exec("alter table diaries add column category int default 0;")
+		s.db.Exec("create table categories(id int,name text);")
+	}
+	return nil
 }
 
 func (s *myDb) Close() {
@@ -130,8 +154,18 @@ func (s *myDb) UpdateRealKeyAndSha40(pwdOld, pwdNew string) error {
 }
 
 func (s *myDb) AddDiary(id int, cdate, title, filename string) error {
-	_, err := s.db.Exec("insert into diaries(id,cdate,title,filename,mtime) values(?,?,?,?,?);",
-		id, cdate, title, filename, time.Now().Format("2006-01-02 15:04:05"))
+	_, err := s.db.Exec("insert into diaries(id,cdate,title,filename,mtime,category) values(?,?,?,?,?,?);",
+		id, cdate, title, filename, time.Now().Format("2006-01-02 15:04:05"), s.category)
+	if err != nil {
+		log.Println("UpdateDiaryTitle")
+		return s.UpdateDiaryTitle(id, title)
+	}
+	return nil
+}
+
+func (s *myDb) AddDiary2(id int, cdate, title, filename string, category int) error {
+	_, err := s.db.Exec("insert into diaries(id,cdate,title,filename,mtime,category) values(?,?,?,?,?,?);",
+		id, cdate, title, filename, time.Now().Format("2006-01-02 15:04:05"), category)
 	if err != nil {
 		log.Println("UpdateDiaryTitle")
 		return s.UpdateDiaryTitle(id, title)
@@ -146,6 +180,17 @@ func (s *myDb) UpdateDiaryTitle(id int, title string) error {
 	}
 	if n, _ := res.RowsAffected(); n == 0 {
 		return errors.New("UpdateDiaryTitle fail.")
+	}
+	return nil
+}
+
+func (s *myDb) UpdateDiaryCategory(id, c int) error {
+	res, err := s.db.Exec("update diaries set category=?,mtime=? where id=?", c, time.Now().Format("2006-01-02 15:04:05"), id)
+	if err != nil {
+		return err
+	}
+	if n, _ := res.RowsAffected(); n == 0 {
+		return errors.New("UpdateDiaryCategory fail.")
 	}
 	return nil
 }
@@ -174,7 +219,7 @@ func (s *myDb) NextId() int {
 }
 
 func (s *myDb) GetYearMonths() ([]string, error) {
-	rows, err := s.db.Query("select distinct substr(cdate,0,8) from diaries order by substr(cdate,0,8) desc;")
+	rows, err := s.db.Query("select distinct substr(cdate,0,8) from diaries where category=? order by substr(cdate,0,8) desc;", s.category)
 	if err != nil {
 		return nil, err
 	}
@@ -196,7 +241,7 @@ type diaryItem struct {
 }
 
 func (s *myDb) GetListFromYearMonth(ym string) ([]diaryItem, error) {
-	rows, err := s.db.Query("select id,substr(cdate,9,11),title,mtime from diaries where substr(cdate,0,8)=? order by substr(cdate,9,11) desc;", ym)
+	rows, err := s.db.Query("select id,substr(cdate,9,11),title,mtime from diaries where substr(cdate,0,8)=? and category=? order by substr(cdate,9,11) desc;", ym, s.category)
 	if err != nil {
 		return nil, err
 	}
@@ -225,7 +270,7 @@ func (s *myDb) RemoveDiary(id string) error {
 }
 
 func (s *myDb) SearchTitle(kw string) ([]diaryItem, error) {
-	rows, err := s.db.Query("select id,cdate,title,mtime from diaries where instr(title,?)>0 order by cdate desc;", kw)
+	rows, err := s.db.Query("select id,cdate,title,mtime from diaries where instr(title,?)>0 and category=? order by cdate desc;", kw, s.category)
 	if err != nil {
 		return nil, err
 	}
@@ -237,4 +282,49 @@ func (s *myDb) SearchTitle(kw string) ([]diaryItem, error) {
 		res = append(res, v)
 	}
 	return res, nil
+}
+
+func (s *myDb) AddCategory(name string) int {
+	res := s.db.QueryRow("select id from categories order by id desc limit 1;")
+
+	var id int
+	err := res.Scan(&id)
+	if err != nil {
+		id = 1
+	} else {
+		id++
+	}
+
+	s.db.Exec("insert into categories(id,name) values (?,?);", id, name)
+	return id
+}
+
+func (s *myDb) RenameCategory(id int, name string) error {
+	_, err := s.db.Exec("update categories set name=? where id=?;", name, id)
+	return err
+}
+
+func (s *myDb) RemoveCategory(c int) {
+	s.db.Exec("delete from categories where id=?;", c)
+	s.db.Exec("update diaries set category=0 where category=?;", c)
+}
+
+func (s *myDb) GetCategories() map[int]string {
+	res := make(map[int]string)
+
+	rows, err := s.db.Query("select id,name from categories order by id asc;")
+	if err != nil {
+		return nil
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var id int
+		var name string
+		if rows.Scan(&id, &name) == nil {
+			res[id] = name
+		}
+	}
+
+	return res
 }

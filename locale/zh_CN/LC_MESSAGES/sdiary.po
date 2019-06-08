@@ -347,3 +347,33 @@ msgstr "替换"
 
 msgid "Paste Text"
 msgstr "粘帖纯文本"
+
+msgid "Rename Category"
+msgstr "重命名类别"
+
+msgid "New Category Name"
+msgstr "新的类别名称"
+
+msgid "Error"
+msgstr "错误"
+
+msgid "Are you sure? All files in this category will move to default category."
+msgstr "是否确定？本类别的所有文件将转移到默认类别中。"
+
+msgid "New Category"
+msgstr "新建类别"
+
+msgid "Remove Category"
+msgstr "删除类别"
+
+msgid "Default"
+msgstr "默认"
+
+msgid "Category"
+msgstr "分类"
+
+msgid "Categories"
+msgstr "分类"
+
+msgid "Can not remove default category."
+msgstr "不能删除默认类别"

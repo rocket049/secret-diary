@@ -67,6 +67,10 @@ type myWindow struct {
 	saveDiary           *widgets.QAction
 	renDiary            *widgets.QAction
 	modifyPwd           *widgets.QAction
+	categories          *widgets.QMenu
+	category            int
+	categoryName        string
+	categoryItem        *widgets.QAction
 	curDiary            diaryPointer
 	user                string
 	key                 []byte
@@ -137,7 +141,7 @@ func (s *myWindow) setMenuBar() {
 		}
 
 		s.model.Clear()
-		s.model.SetHorizontalHeaderLabels([]string{T("Diary List")})
+		s.model.SetHorizontalHeaderLabels([]string{T("Diary List") + " - " + s.categoryName})
 
 		s.addYearMonthsFromDb()
 	})
@@ -218,6 +222,8 @@ func (s *myWindow) setMenuBar() {
 		}
 		t.RemoveColumns(c.Column(), 1)
 	})
+
+	s.showCategores(menubar)
 
 	menu = menubar.AddMenu2(T("Manage"))
 
@@ -551,7 +557,7 @@ func (s *myWindow) createLeftArea() widgets.QWidget_ITF {
 	s.tree.SetHorizontalScrollBarPolicy(core.Qt__ScrollBarAsNeeded)
 	s.tree.SetAutoScroll(true)
 	s.model = gui.NewQStandardItemModel2(0, 1, s.tree)
-	s.model.SetHorizontalHeaderLabels([]string{T("Diary List")})
+
 	s.tree.SetModel(s.model)
 	spliter.AddWidget(s.tree)
 
@@ -576,7 +582,7 @@ func (s *myWindow) createLeftArea() widgets.QWidget_ITF {
 	s.treeFind.SetHorizontalScrollBarPolicy(core.Qt__ScrollBarAsNeeded)
 	s.treeFind.SetAutoScroll(true)
 	s.modelFind = gui.NewQStandardItemModel2(0, 1, s.treeFind)
-	s.modelFind.SetHorizontalHeaderLabels([]string{T("Result List")})
+	s.modelFind.SetHorizontalHeaderLabels([]string{T("Result List") + " - " + s.categoryName})
 	s.treeFind.SetModel(s.modelFind)
 	grid.AddWidget3(s.treeFind, 1, 0, 1, 2, 0)
 	search.SetLayout(grid)
@@ -694,6 +700,11 @@ func (s *myWindow) addDiary(yearMonth, day, title string) {
 
 func (s *myWindow) addYearMonthsFromDb() {
 	s.setStatusBar(T("Loading Diary List..."))
+	s.editor.Document().Clear()
+	s.editor.Document().SetModified(false)
+	s.editor.SetReadOnly(true)
+	s.curDiary.Item = nil
+	s.curDiary.Id = 0
 
 	s.bridge = NewQmlBridge(s.window)
 	var wg sync.WaitGroup
@@ -950,33 +961,7 @@ func (s *myWindow) setEditorFuncs() {
 		s.saveCurDiary()
 	})
 
-	s.editor.ConnectTextChanged(func() {
-		if s.curDiary.Item == nil {
-			return
-		}
-
-		disp1 := s.curDiary.Day + "-" + strings.TrimSpace(s.editor.Document().FirstBlock().Text())
-
-		disp0 := s.curDiary.Item.Text()
-		if disp0 != disp1 {
-			p := s.curDiary.Item.Parent()
-			pos := s.curDiary.Item.Index()
-			s.curDiary.Item = p.TakeChild(pos.Row(), pos.Column())
-			s.curDiary.Item.SetText(disp1)
-			p.SetChild(pos.Row(), pos.Column(), s.curDiary.Item)
-			s.tree.SetCurrentIndex(s.curDiary.Item.Index())
-			s.tree.ResizeColumnToContents(0)
-			if s.editor.CurrentCharFormat().FontPointSize() != 18 {
-				var cfmt = gui.NewQTextCharFormat()
-				cfmt.SetFontPointSize(18)
-				cfmt.SetForeground(gui.NewQBrush3(gui.NewQColor2(core.Qt__blue), core.Qt__SolidPattern))
-				s.mergeFormatOnLineOrSelection(cfmt)
-			}
-
-			s.editor.Document().SetModified(true)
-		}
-
-	})
+	s.editor.ConnectTextChanged(s.OnTextChanged)
 
 	s.editor.ConnectContextMenuEvent(func(e *gui.QContextMenuEvent) {
 
@@ -1007,6 +992,34 @@ func (s *myWindow) setEditorFuncs() {
 
 		menu.Popup(e.GlobalPos(), nil)
 	})
+
+}
+
+func (s *myWindow) OnTextChanged() {
+	if s.curDiary.Item == nil {
+		return
+	}
+
+	disp1 := s.curDiary.Day + "-" + strings.TrimSpace(s.editor.Document().FirstBlock().Text())
+
+	disp0 := s.curDiary.Item.Text()
+	if disp0 != disp1 {
+		p := s.curDiary.Item.Parent()
+		pos := s.curDiary.Item.Index()
+		s.curDiary.Item = p.TakeChild(pos.Row(), pos.Column())
+		s.curDiary.Item.SetText(disp1)
+		p.SetChild(pos.Row(), pos.Column(), s.curDiary.Item)
+		s.tree.SetCurrentIndex(s.curDiary.Item.Index())
+		s.tree.ResizeColumnToContents(0)
+		if s.editor.CurrentCharFormat().FontPointSize() != 18 {
+			var cfmt = gui.NewQTextCharFormat()
+			cfmt.SetFontPointSize(18)
+			cfmt.SetForeground(gui.NewQBrush3(gui.NewQColor2(core.Qt__blue), core.Qt__SolidPattern))
+			s.mergeFormatOnLineOrSelection(cfmt)
+		}
+
+		s.editor.Document().SetModified(true)
+	}
 
 }
 
@@ -1332,7 +1345,7 @@ func (s *myWindow) login() {
 
 	dlg.ConnectHideEvent(func(e *gui.QHideEvent) {
 		//log.Println("load list")
-		s.addYearMonthsFromDb()
+		s.loadUserCategorys()
 		dlg.Destroy(true, true)
 	})
 
