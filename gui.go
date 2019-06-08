@@ -873,6 +873,29 @@ func (s *myWindow) diaryPopup(idx *core.QModelIndex, e *gui.QMouseEvent) {
 		OpenDiaryNewWindow(s, id)
 	})
 
+	category := menu.AddAction(T("Change Category"))
+	category.ConnectTriggered(func(checked bool) {
+		id, err := strconv.Atoi(diary.AccessibleText())
+		if err != nil {
+			s.setStatusBar(err.Error())
+			return
+		}
+		dict := s.db.GetCategories()
+		dict1 := make(map[string]int)
+		dict1[T("Default")] = 0
+		items := []string{T("Default")}
+		for k, v := range dict {
+			dict1[v] = k
+			items = append(items, v)
+		}
+		var ok bool
+		ret := widgets.QInputDialog_GetItem(s.window, T("Category"), T("Select a category"), items, 0, false, &ok, core.Qt__Dialog, 0)
+		if ok {
+			s.db.UpdateDiaryCategory(id, dict1[ret])
+		}
+		s.model.RemoveRow(diary.Row(), diary.Index().Parent())
+	})
+
 	menu.QWidget.AddAction(s.exportEnc)
 
 	menu.QWidget.AddAction(s.exportPdf)

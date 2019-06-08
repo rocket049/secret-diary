@@ -377,3 +377,9 @@ msgstr "分类"
 
 msgid "Can not remove default category."
 msgstr "不能删除默认类别"
+
+msgid "Change Category"
+msgstr "修改类别"
+
+msgid "Select a category"
+msgstr "选择一个分类"
