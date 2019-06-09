@@ -83,10 +83,8 @@ func (s *myWindow) addCategoryMenuItem(id int, name string) *widgets.QAction {
 
 func (s *myWindow) showCurCategory(c int) {
 	s.db.setCategory(c)
-	s.model.Clear()
-	s.model.SetHorizontalHeaderLabels([]string{T("Diary List") + " - " + s.categoryName})
-	s.modelFind.Clear()
-	s.modelFind.SetHorizontalHeaderLabels([]string{T("Result List") + " - " + s.categoryName})
+	s.clearModel()
+	s.clearModelFind()
 
 	s.addYearMonthsFromDb()
 }

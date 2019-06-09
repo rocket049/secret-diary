@@ -60,6 +60,6 @@ Categories=Office;
 	t.Execute(fp, data)
 }
 
-func main() {
+func addToMenu() {
 	makeLauncher("Secret-Diary", "secret-diary", "Sd.png")
 }

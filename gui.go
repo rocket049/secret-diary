@@ -8,6 +8,7 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -140,8 +141,7 @@ func (s *myWindow) setMenuBar() {
 			widgets.QMessageBox_About(s.window, T("Error"), err.Error())
 		}
 
-		s.model.Clear()
-		s.model.SetHorizontalHeaderLabels([]string{T("Diary List") + " - " + s.categoryName})
+		s.clearModel()
 
 		s.addYearMonthsFromDb()
 	})
@@ -243,6 +243,14 @@ func (s *myWindow) setMenuBar() {
 	about.ConnectTriggered(func(b bool) {
 		s.showMsg(T("About"), T("Copy Right: Fu Huizhong <fuhuizn@163.com>\nSecurity Diary Tool.\nCrypto with AES256")+"\nHomepage: https://github.com/rocket049/secret-diary")
 	})
+
+	if runtime.GOOS != "windows" {
+		add2menu := menu.AddAction(T("Add To Menu"))
+		add2menu.ConnectTriggered(func(b bool) {
+			addToMenu()
+			s.showMsg(T("Add To Menu"), T("You can start this program from 'Start'->'Office'"))
+		})
+	}
 
 	bak := menu.AddAction(T("Backup & Delete"))
 	bak.ConnectTriggered(func(b bool) {
@@ -557,6 +565,7 @@ func (s *myWindow) createLeftArea() widgets.QWidget_ITF {
 	s.tree.SetHorizontalScrollBarPolicy(core.Qt__ScrollBarAsNeeded)
 	s.tree.SetAutoScroll(true)
 	s.model = gui.NewQStandardItemModel2(0, 1, s.tree)
+	s.clearModel()
 
 	s.tree.SetModel(s.model)
 	spliter.AddWidget(s.tree)
@@ -582,7 +591,7 @@ func (s *myWindow) createLeftArea() widgets.QWidget_ITF {
 	s.treeFind.SetHorizontalScrollBarPolicy(core.Qt__ScrollBarAsNeeded)
 	s.treeFind.SetAutoScroll(true)
 	s.modelFind = gui.NewQStandardItemModel2(0, 1, s.treeFind)
-	s.modelFind.SetHorizontalHeaderLabels([]string{T("Result List") + " - " + s.categoryName})
+	s.clearModelFind()
 	s.treeFind.SetModel(s.modelFind)
 	grid.AddWidget3(s.treeFind, 1, 0, 1, 2, 0)
 	search.SetLayout(grid)
@@ -1081,6 +1090,16 @@ func (s *myWindow) getSelectedImage() string {
 	return urls[0][1]
 }
 
+func (s *myWindow) clearModel() {
+	s.model.Clear()
+	s.model.SetHorizontalHeaderLabels([]string{T("Diary List") + " - " + s.categoryName})
+}
+
+func (s *myWindow) clearModelFind() {
+	s.modelFind.Clear()
+	s.modelFind.SetHorizontalHeaderLabels([]string{T("Result List") + " - " + s.categoryName})
+}
+
 func (s *myWindow) lastUser() string {
 	home, _ := os.UserHomeDir()
 	v, err := ioutil.ReadFile(path.Join(home, ".sdiary", "user.txt"))
@@ -1373,6 +1392,9 @@ func (s *myWindow) login() {
 	})
 
 	dlg.Show()
+
+	dlg.Move2(0, 0)
+	dlg.Move2(s.window.X()+(s.window.Width()-dlg.Width())/2, s.window.Y()+(s.window.Height()-dlg.Width())/2)
 }
 
 func (s *myWindow) exportEncryptedDiary() {

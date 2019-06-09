@@ -579,8 +579,9 @@ func (s *myWindow) searchFromDb(kw string) {
 		s.setStatusBar(err.Error())
 		return
 	}
-	s.modelFind.Clear()
-	s.modelFind.SetHorizontalHeaderLabels([]string{T("Result List")})
+
+	s.clearModelFind()
+
 	var ym string
 	var r, c int
 	for _, diary := range diaryList {
