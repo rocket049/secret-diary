@@ -358,6 +358,18 @@ func (s *myWindow) setToolBar() {
 
 	s.addJustifyActions(bar)
 
+	icon = gui.NewQIcon5(":/qml/icons/right.png")
+	increaseIdent := bar.AddAction2(icon, T("Increase Ident"))
+	increaseIdent.ConnectTriggered(func(checked bool) {
+		s.addIndent(1)
+	})
+
+	icon = gui.NewQIcon5(":/qml/icons/left.png")
+	degreeIdent := bar.AddAction2(icon, T("Decrease Ident"))
+	degreeIdent.ConnectTriggered(func(checked bool) {
+		s.addIndent(-1)
+	})
+
 	comboStyle := widgets.NewQComboBox(bar)
 	bar.AddWidget(comboStyle)
 	comboStyle.AddItems([]string{

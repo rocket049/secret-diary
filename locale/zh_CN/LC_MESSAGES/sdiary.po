@@ -389,3 +389,9 @@ msgstr "加入启动菜单"
 
 msgid "You can start this program from 'Start'->'Office'"
 msgstr "你现在可以从 '开始'->'办公' 启动本程序"
+
+msgid "Increase Ident"
+msgstr "增加缩进量"
+
+msgid "Decrease Ident"
+msgstr "减少缩进量"

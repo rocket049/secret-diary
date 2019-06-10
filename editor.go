@@ -116,6 +116,34 @@ func (s *myWindow) textStyle(styleIndex int) {
 	}
 }
 
+// addIndent n=1 or n=-1
+func (s *myWindow) addIndent(n int) {
+	cursor := s.editor.TextCursor()
+	cursor.BeginEditBlock()
+
+	var (
+		blockFmt = cursor.BlockFormat()
+		listFmt  = gui.NewQTextListFormat()
+	)
+
+	if cursor.CurrentList().Pointer() != nil {
+		listFmt = gui.NewQTextListFormatFromPointer(cursor.CurrentList().Format().Pointer())
+		if listFmt.Indent()+n >= 0 {
+			listFmt.SetIndent(listFmt.Indent() + n)
+			cursor.CreateList(listFmt)
+		}
+
+	} else {
+		if blockFmt.Indent()+n >= 0 {
+			blockFmt.SetIndent(blockFmt.Indent() + n)
+			cursor.SetBlockFormat(blockFmt)
+		}
+
+	}
+
+	cursor.EndEditBlock()
+}
+
 func (s *myWindow) textColor() {
 	var col = widgets.QColorDialog_GetColor(s.editor.TextColor(), s.editor, "", 0)
 	if !col.IsValid() {
