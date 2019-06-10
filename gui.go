@@ -631,7 +631,9 @@ func (s *myWindow) createEditor() widgets.QWidget_ITF {
 	font := gui.NewQFont()
 	font.SetPointSize(14)
 	mtr := gui.NewQFontMetrics(font)
-	width := mtr.Height() * 35
+
+	width := mtr.AverageCharWidth() * 60
+
 	s.editor.SetTabStopWidth(mtr.Height() * 2)
 	s.editor.SetFixedWidth(width)
 
@@ -1582,6 +1584,7 @@ func (s *myWindow) exportAsPdf() {
 		printer  = printsupport.NewQPrinter(printsupport.QPrinter__HighResolution)
 	)
 	printer.SetOutputFormat(printsupport.QPrinter__PdfFormat)
+
 	printer.SetOutputFileName(fileName)
 	s.editor.Document().Print(printer)
 	s.setStatusBar(fmt.Sprintf("Exported %v", core.QDir_ToNativeSeparators(fileName)))
