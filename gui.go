@@ -437,7 +437,8 @@ func (s *myWindow) setupComboAttachs() *widgets.QHBoxLayout {
 	hbox := widgets.NewQHBoxLayout()
 	s.comboAttachs = widgets.NewQComboBox(s.window)
 	s.comboAttachs.SetSizePolicy2(widgets.QSizePolicy__Expanding, widgets.QSizePolicy__Fixed)
-	s.comboAttachs.AddItems([]string{T("-- Selected Attachments --")})
+	list := []string{fmt.Sprintf("-- %s(%s:0) --", T("Select Attachments"), T("Total"))}
+	s.comboAttachs.AddItems(list)
 	expBtn := widgets.NewQPushButton2(T("Export As..."), s.window)
 	expBtn.SetSizePolicy2(widgets.QSizePolicy__Fixed, widgets.QSizePolicy__Fixed)
 	hbox.AddWidget(s.comboAttachs, 1, 0)
@@ -476,7 +477,7 @@ func (s *myWindow) setupComboAttachs() *widgets.QHBoxLayout {
 }
 
 func (s *myWindow) showAttachList() {
-	list := []string{T("-- Selected Attachments --")}
+	list := []string{fmt.Sprintf("-- %s(%s:%d) --", T("Select Attachments"), T("Total"), len(s.document.Attachments))}
 	for _, v := range s.document.Attachments {
 		list = append(list, v.Name)
 	}
@@ -486,7 +487,8 @@ func (s *myWindow) showAttachList() {
 
 func (s *myWindow) clearAttachs() {
 	s.comboAttachs.Clear()
-	s.comboAttachs.AddItems([]string{T("-- Selected Attachments --")})
+	list := []string{fmt.Sprintf("-- %s(%s:0) --", T("Select Attachments"), T("Total"))}
+	s.comboAttachs.AddItems(list)
 }
 
 func (s *myWindow) addAttachment(filename string) bool {
@@ -963,9 +965,17 @@ func (s *myWindow) setTreeFuncs() {
 
 		switch e.Button() {
 		case core.Qt__LeftButton:
-			s.onSelectItem(idx)
+			s.tree.SetCurrentIndex(idx)
 		case core.Qt__RightButton:
 			s.diaryPopup(idx, e)
+		}
+
+	})
+
+	s.tree.ConnectSelectionChanged(func(selected *core.QItemSelection, deselected *core.QItemSelection) {
+		idxes := selected.Indexes()
+		if len(idxes) > 0 {
+			s.onSelectItem(idxes[0])
 		}
 
 	})
