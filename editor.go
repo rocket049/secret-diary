@@ -229,12 +229,13 @@ func (s *myWindow) insertImage() {
 }
 
 func (s *myWindow) scaleImage(src *gui.QImage) (res *gui.QImage) {
+
 	dlg := widgets.NewQDialog(s.window, core.Qt__Dialog)
 	dlg.SetWindowTitle(T("Scale Image Size"))
 
 	grid := widgets.NewQGridLayout(dlg)
 
-	width := widgets.NewQLabel2(strconv.Itoa(src.Width())+" =>", dlg, core.Qt__Widget)
+	width := widgets.NewQLabel2(fmt.Sprintf("%s : %d =>", T("Width"), src.Width()), dlg, core.Qt__Widget)
 	grid.AddWidget(width, 0, 0, 0)
 	scaledW := src.Width()
 	scaledH := src.Height()
@@ -253,7 +254,7 @@ func (s *myWindow) scaleImage(src *gui.QImage) (res *gui.QImage) {
 	widthInput.SetValidator(wValidor)
 	grid.AddWidget(widthInput, 0, 1, 0)
 
-	height := widgets.NewQLabel2(strconv.Itoa(src.Height())+" =>", dlg, core.Qt__Widget)
+	height := widgets.NewQLabel2(fmt.Sprintf("%s : %d =>", T("Height"), src.Height()), dlg, core.Qt__Widget)
 
 	grid.AddWidget(height, 1, 0, 0)
 
@@ -316,6 +317,9 @@ func (s *myWindow) scaleImage(src *gui.QImage) (res *gui.QImage) {
 	})
 
 	dlg.Exec()
+	if res == nil {
+		res = src
+	}
 	return
 }
 

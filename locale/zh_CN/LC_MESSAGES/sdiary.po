@@ -395,3 +395,15 @@ msgstr "增加缩进量"
 
 msgid "Decrease Ident"
 msgstr "减少缩进量"
+
+msgid "Scale Image"
+msgstr "缩放图片"
+
+msgid "Scale Image Size"
+msgstr "缩放图片尺寸"
+
+msgid "Width"
+msgstr "宽"
+
+msgid "Height"
+msgstr "高"

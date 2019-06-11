@@ -1029,6 +1029,26 @@ func (s *myWindow) setEditorFuncs() {
 					ioutil.WriteFile(filename, s.document.Images[imgUrl], 0644)
 				}
 			})
+
+			actScale := menu.AddAction(T("Scale Image"))
+			actScale.ConnectTriggered(func(b bool) {
+				v := s.editor.Document().Resource(int(gui.QTextDocument__ImageResource), core.NewQUrl3(imgUrl, core.QUrl__TolerantMode))
+				img := gui.NewQImageFromPointer(v.ToImage())
+				res := s.scaleImage(img)
+
+				s.editor.Document().AddResource(int(gui.QTextDocument__ImageResource), core.NewQUrl3(imgUrl, core.QUrl__TolerantMode), res.ToVariant())
+				//save data
+				ba := core.NewQByteArray()
+				iod := core.NewQBuffer2(ba, nil)
+				iod.Open(core.QIODevice__WriteOnly)
+
+				ok := res.Save2(iod, filepath.Ext(filepath.Base(imgUrl))[1:], -1)
+				//fmt.Println(filepath.Ext(filename))
+				if ok {
+					s.document.Images[imgUrl] = []byte(ba.Data())
+				}
+				s.editor.Document().SetModified(true)
+			})
 		}
 
 		//add search
@@ -1070,7 +1090,7 @@ func (s *myWindow) OnTextChanged() {
 }
 
 //return url or ""
-func (s *myWindow) getSelectedImage() string {
+func (s *myWindow) getSelectedImage() (url string) {
 	cursor := s.editor.TextCursor()
 	if cursor == nil {
 		return ""
