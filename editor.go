@@ -548,7 +548,8 @@ func (s *myWindow) OpenNewWindow(parent *myWindow, id int) {
 	s.renDiary.SetDisabled(true)
 	s.modifyPwd.SetDisabled(true)
 
-	s.setStandaloneFuncs()
+	//s.setStandaloneFuncs()
+	s.setEditorFuncs()
 
 	frame.SetLayout(grid)
 
@@ -829,44 +830,6 @@ func (s *myWindow) replaceText() {
 	})
 
 	dlg.Show()
-}
-
-func (s *myWindow) setStandaloneFuncs() {
-
-	s.saveDiary.ConnectTriggered(func(b bool) {
-		s.saveDiaryAlone()
-	})
-
-	s.editor.ConnectContextMenuEvent(func(e *gui.QContextMenuEvent) {
-
-		menu := s.editor.CreateStandardContextMenu()
-
-		imgUrl := s.getSelectedImage()
-		if len(imgUrl) > 0 {
-			//addaction export image
-			act := menu.AddAction(T("Export Image As..."))
-			act.ConnectTriggered(func(b bool) {
-				ext := filepath.Ext(imgUrl)
-				filter := fmt.Sprintf("%s Image (*%s)", ext, ext)
-				filename := widgets.QFileDialog_GetSaveFileName(s.window, T("Export Image As..."), filepath.Base(imgUrl), filter, filter, 0)
-				if strings.HasSuffix(filename, ext) == false {
-					filename = filename + ext
-				}
-
-				if len(filename) > 0 {
-					ioutil.WriteFile(filename, s.document.Images[imgUrl], 0644)
-				}
-			})
-		}
-
-		//add search
-		menu.QWidget.AddAction(s.paste)
-		menu.QWidget.AddAction(s.search)
-		menu.QWidget.AddAction(s.replace)
-
-		menu.Popup(e.GlobalPos(), nil)
-	})
-
 }
 
 func (s *myWindow) pasteText() {

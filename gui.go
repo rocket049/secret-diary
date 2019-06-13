@@ -148,6 +148,7 @@ func (s *myWindow) setMenuBar() {
 
 	menu = menubar.AddMenu2(T("Edit"))
 	s.paste = menu.AddAction(T("Paste Text"))
+	s.paste.SetShortcut(gui.QKeySequence_FromString("Ctrl+d", gui.QKeySequence__NativeText))
 	s.paste.ConnectTriggered(func(b bool) {
 		s.pasteText()
 	})
@@ -1014,10 +1015,16 @@ func (s *myWindow) setTitle(v string) {
 func (s *myWindow) setEditorFuncs() {
 
 	s.saveDiary.ConnectTriggered(func(b bool) {
-		s.saveCurDiary()
-	})
+		if s.model != nil {
+			s.saveCurDiary()
+		} else {
+			s.saveDiaryAlone()
+		}
 
-	s.editor.ConnectTextChanged(s.OnTextChanged)
+	})
+	if s.model != nil {
+		s.editor.ConnectTextChanged(s.OnTextChanged)
+	}
 
 	s.editor.ConnectContextMenuEvent(func(e *gui.QContextMenuEvent) {
 
