@@ -1533,7 +1533,7 @@ func (s *myWindow) importEncryptedDiary() {
 	//import private format .egf	(encrypted gob file)
 
 	dlg := widgets.NewQDialog(s.window, core.Qt__Dialog)
-	dlg.SetWindowTitle(T("Export Encrypted Diary") + "...")
+	dlg.SetWindowTitle(T("Import Encrypted Diary") + "...")
 
 	grid := widgets.NewQGridLayout2()
 
@@ -1593,6 +1593,7 @@ func (s *myWindow) importEncryptedDiary() {
 		if err == nil {
 
 			s.editor.SetHtml(s.document.Html)
+			s.showAttachList()
 			//curDiary.Modified = true
 			s.editor.Document().SetModified(true)
 
