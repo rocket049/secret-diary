@@ -23,6 +23,8 @@ import (
 	"github.com/therecipe/qt/widgets"
 )
 
+const version = "1.1.7"
+
 func init() {
 	exe1, _ := os.Executable()
 	dir1 := path.Dir(exe1)
@@ -242,7 +244,7 @@ func (s *myWindow) setMenuBar() {
 
 	about := menu.AddAction(T("About"))
 	about.ConnectTriggered(func(b bool) {
-		s.showMsg(T("About"), T("Copy Right: Fu Huizhong <fuhuizn@163.com>\nSecurity Diary Tool.\nCrypto with AES256")+"\nHomepage: https://github.com/rocket049/secret-diary")
+		s.showMsg(T("About"), T("Copy Right: Fu Huizhong <fuhuizn@163.com>\nSecurity Diary ")+version+"\n"+T("Crypto with AES256")+"\nHomepage: https://github.com/rocket049/secret-diary")
 	})
 
 	if runtime.GOOS != "windows" {
@@ -713,6 +715,9 @@ func (s *myWindow) addDiary(yearMonth, day, title string) {
 	s.curDiary.Item = diary
 	s.curDiary.Day = day
 	s.curDiary.YearMonth = yearMonth
+
+	s.document.Attachments = []attachmentFile{}
+	s.document.Images = make(map[string][]byte)
 
 	s.editor.SetReadOnly(false)
 	s.exportEnc.SetEnabled(true)

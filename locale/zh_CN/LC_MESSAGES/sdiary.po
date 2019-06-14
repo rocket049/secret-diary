@@ -28,12 +28,13 @@ msgstr "帮助"
 
 msgid ""
 "Copy Right: Fu Huizhong <fuhuizn@163.com>\n"
-"Security Diary Tool.\n"
-"Crypto with AES256"
+"Security Diary "
 msgstr ""
 "版权所有：Fu Huizhong <fuhuizn@163.com>\n"
-"安全日记本\n"
-"使用256位AES加密算法"
+"安全日记本 "
+
+msgid "Crypto with AES256"
+msgstr "使用256位AES加密算法"
 
 msgid "About"
 msgstr "关于"
