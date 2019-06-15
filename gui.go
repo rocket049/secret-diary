@@ -812,7 +812,7 @@ func (s *myWindow) addYearMonth(yearMonth string) *gui.QStandardItem {
 	item.SetEditable(false)
 	item.SetAccessibleText("")
 
-	s.model.AppendRow2(item)
+	s.model.InsertRow2(0, item)
 
 	return item
 }
