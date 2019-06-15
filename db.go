@@ -219,7 +219,7 @@ func (s *myDb) NextId() int {
 }
 
 func (s *myDb) GetYearMonths() ([]string, error) {
-	rows, err := s.db.Query("select distinct substr(cdate,0,8) from diaries where category=? order by substr(cdate,0,8) desc;", s.category)
+	rows, err := s.db.Query("select distinct substr(cdate,0,8) from diaries where category=? order by substr(cdate,0,8) asc;", s.category)
 	if err != nil {
 		return nil, err
 	}
