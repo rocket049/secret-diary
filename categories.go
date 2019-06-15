@@ -59,24 +59,24 @@ func (s *myWindow) addCategoryMenuItem(id int, name string) *widgets.QAction {
 	c.SetCheckable(true)
 	c.SetData(core.NewQVariant1(id))
 	c.ConnectTriggered(func(b bool) {
-		c.SetChecked(b)
-		if b {
-			data, ok := c.Data().ToInterface().(int)
-			if ok == false {
-				return
-			}
-
-			s.saveCurDiary()
-			s.curDiary.Item = nil
-
-			s.category = data
-			s.categoryName = c.Text()
-			if s.categoryItem != nil {
-				s.categoryItem.SetChecked(false)
-			}
-			s.categoryItem = c
-			s.showCurCategory(data)
+		data, ok := c.Data().ToInterface().(int)
+		if ok == false {
+			return
 		}
+
+		s.saveCurDiary()
+		s.curDiary.Item = nil
+
+		s.category = data
+		s.categoryName = c.Text()
+		//set last selected item to false
+		if s.categoryItem != nil && b {
+			s.categoryItem.SetChecked(false)
+		}
+		s.categoryItem = c
+		s.showCurCategory(data)
+
+		c.SetChecked(true)
 	})
 	return c
 }
