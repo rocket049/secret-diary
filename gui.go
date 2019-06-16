@@ -308,6 +308,7 @@ func (s *myWindow) setToolBar() {
 	standard := bar.AddAction(T("Standard"))
 	standard.ConnectTriggered(func(b bool) {
 		var cfmt = gui.NewQTextCharFormat()
+		cfmt.SetFont2(s.app.Font())
 		cfmt.SetFontPointSize(14)
 		cfmt.SetForeground(gui.NewQBrush3(gui.NewQColor2(core.Qt__black), core.Qt__SolidPattern))
 		s.mergeFormatOnLineOrSelection(cfmt)
@@ -507,6 +508,12 @@ func (s *myWindow) addAttachment(filename string) bool {
 
 func (s *myWindow) Create(app *widgets.QApplication) {
 	s.app = app
+	font := gui.NewQFont()
+	font.SetPointSize(12)
+	font.SetFamily("Serif")
+	app.SetFont(font, "standard")
+	charW := app.FontMetrics().BoundingRect2("W").Height()
+	fmt.Println(charW)
 	s.window = widgets.NewQMainWindow(nil, core.Qt__Window)
 
 	s.window.SetWindowTitle(T("UserName"))
@@ -519,13 +526,13 @@ func (s *myWindow) Create(app *widgets.QApplication) {
 
 	s.window.SetCentralWidget(frame)
 
-	leftArea := s.createLeftArea()
+	leftArea := s.createLeftArea(charW)
 	grid.AddWidget3(leftArea, 0, 0, 2, 1, 0)
 
-	editor := s.createEditor()
-	w := s.tree.Width() + s.editor.Width() + 160
+	editor := s.createEditor(charW)
+	w := 53 * charW
 	s.window.SetMinimumWidth(w)
-	s.window.SetMinimumHeight(w * 2 / 3)
+	s.window.SetMinimumHeight(w * 9 / 16)
 	grid.AddWidget3(editor, 0, 1, 1, 1, 0)
 
 	comboBox := s.setupComboAttachs()
@@ -565,19 +572,18 @@ func (s *myWindow) Create(app *widgets.QApplication) {
 	s.window.Show()
 }
 
-func (s *myWindow) createLeftArea() widgets.QWidget_ITF {
+func (s *myWindow) createLeftArea(charW int) widgets.QWidget_ITF {
 	spliter := widgets.NewQSplitter(nil)
 	spliter.SetOrientation(core.Qt__Vertical)
 	spliter.SetSizePolicy2(widgets.QSizePolicy__Fixed, widgets.QSizePolicy__Expanding)
-	font := gui.NewQFont()
-	font.SetPointSize(14)
-	mtr := gui.NewQFontMetrics(font)
-	mwidth := mtr.Height() * 15
+
+	mwidth := charW * 15
+
 	spliter.SetFixedWidth(mwidth)
 
 	s.tree = widgets.NewQTreeView(s.window)
-	s.tree.SetMinimumWidth(240)
-	s.tree.SetMinimumHeight(400)
+	//s.tree.SetMinimumWidth(240)
+	//s.tree.SetMinimumHeight(400)
 	s.tree.SetSizePolicy2(widgets.QSizePolicy__Expanding, widgets.QSizePolicy__Expanding)
 	s.tree.SetHorizontalScrollBarPolicy(core.Qt__ScrollBarAsNeeded)
 	s.tree.SetAutoScroll(true)
@@ -602,7 +608,7 @@ func (s *myWindow) createLeftArea() widgets.QWidget_ITF {
 	})
 
 	s.treeFind = widgets.NewQTreeView(s.window)
-	s.treeFind.SetMinimumWidth(240)
+	//s.treeFind.SetMinimumWidth(240)
 
 	s.treeFind.SetSizePolicy2(widgets.QSizePolicy__Expanding, widgets.QSizePolicy__Preferred)
 	s.treeFind.SetHorizontalScrollBarPolicy(core.Qt__ScrollBarAsNeeded)
@@ -612,7 +618,7 @@ func (s *myWindow) createLeftArea() widgets.QWidget_ITF {
 	s.treeFind.SetModel(s.modelFind)
 	grid.AddWidget3(s.treeFind, 1, 0, 1, 2, 0)
 	search.SetLayout(grid)
-	search.SetMinimumHeight(100)
+	//search.SetMinimumHeight(100)
 	search.SetSizePolicy2(widgets.QSizePolicy__Expanding, widgets.QSizePolicy__Minimum)
 	spliter.AddWidget(search)
 
@@ -620,7 +626,7 @@ func (s *myWindow) createLeftArea() widgets.QWidget_ITF {
 	return spliter
 }
 
-func (s *myWindow) createEditor() widgets.QWidget_ITF {
+func (s *myWindow) createEditor(charW int) widgets.QWidget_ITF {
 	scrollarea := widgets.NewQScrollArea(s.window)
 	scrollarea.SetHorizontalScrollBarPolicy(core.Qt__ScrollBarAsNeeded)
 	scrollarea.SetVerticalScrollBarPolicy(core.Qt__ScrollBarAlwaysOff)
@@ -633,13 +639,9 @@ func (s *myWindow) createEditor() widgets.QWidget_ITF {
 	s.editor.SetTabChangesFocus(false)
 	s.editor.SetReadOnly(true)
 
-	font := gui.NewQFont()
-	font.SetPointSize(14)
-	mtr := gui.NewQFontMetrics(font)
+	width := charW * 30
 
-	width := mtr.AverageCharWidth() * 60
-
-	s.editor.SetTabStopWidth(mtr.Height() * 2)
+	s.editor.SetTabStopWidth(charW * 2)
 	s.editor.SetFixedWidth(width)
 
 	scrollarea.SetMinimumWidth(width + 100)
@@ -692,7 +694,7 @@ func (s *myWindow) saveCurDiary() {
 
 	encodeToFile(s.getRichText(), filename, s.key)
 	s.setStatusBar(T("Save Diary") + fmt.Sprintf(" %s(%s)", title, filename))
-	//curDiary.Modified = false
+
 	s.editor.Document().SetModified(false)
 }
 
@@ -992,6 +994,7 @@ func (s *myWindow) setTitle(v string) {
 	s.editor.Clear()
 	s.editor.Document().Clear()
 	var cfmt = gui.NewQTextCharFormat()
+	cfmt.SetFont2(s.app.Font())
 	cfmt.SetFontPointSize(18)
 	cfmt.SetForeground(gui.NewQBrush3(gui.NewQColor2(core.Qt__blue), core.Qt__SolidPattern))
 
@@ -1008,6 +1011,7 @@ func (s *myWindow) setTitle(v string) {
 
 	var afmt = gui.NewQTextCharFormat()
 	afmt.SetForeground(gui.NewQBrush3(gui.NewQColor2(core.Qt__black), core.Qt__SolidPattern))
+	afmt.SetFont2(s.app.Font())
 	afmt.SetFontPointSize(14)
 
 	s.editor.SetAlignment(core.Qt__AlignLeft | core.Qt__AlignAbsolute)
@@ -1101,6 +1105,7 @@ func (s *myWindow) OnTextChanged() {
 		s.tree.ResizeColumnToContents(0)
 		if s.editor.CurrentCharFormat().FontPointSize() != 18 {
 			var cfmt = gui.NewQTextCharFormat()
+			cfmt.SetFont2(s.app.Font())
 			cfmt.SetFontPointSize(18)
 			cfmt.SetForeground(gui.NewQBrush3(gui.NewQColor2(core.Qt__blue), core.Qt__SolidPattern))
 			s.mergeFormatOnLineOrSelection(cfmt)

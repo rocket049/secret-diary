@@ -17,6 +17,7 @@ import (
 
 func (s *myWindow) setHeader(level int) {
 	var cfmt = gui.NewQTextCharFormat()
+	cfmt.SetFont2(s.app.Font())
 	switch level {
 	case 1:
 		cfmt.SetFontPointSize(18)
@@ -34,6 +35,7 @@ func (s *myWindow) setHeader(level int) {
 
 func (s *myWindow) setStandard() {
 	var cfmt = gui.NewQTextCharFormat()
+	cfmt.SetFont2(s.app.Font())
 	cfmt.SetFontPointSize(14)
 	cfmt.SetForeground(gui.NewQBrush3(gui.NewQColor2(core.Qt__black), core.Qt__SolidPattern))
 
@@ -527,7 +529,8 @@ func (s *myWindow) OpenNewWindow(parent *myWindow, id int) {
 
 	s.window.SetCentralWidget(frame)
 
-	editor := s.createEditor()
+	charW := s.app.FontMetrics().BoundingRect2("W").Width() * 2
+	editor := s.createEditor(charW)
 	s.window.SetMinimumWidth(s.editor.Width() + 100)
 
 	grid.AddWidget3(editor, 0, 0, 1, 1, 0)
