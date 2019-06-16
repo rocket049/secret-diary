@@ -507,18 +507,23 @@ func (s *myWindow) addAttachment(filename string) bool {
 }
 
 func (s *myWindow) Create(app *widgets.QApplication) {
-	s.app = app
+
 	font := gui.NewQFont()
 	font.SetPointSize(12)
-	font.SetFamily("Serif")
+	font.SetFamily("Serif Regular")
 	app.SetFont(font, "standard")
-	charW := app.FontMetrics().BoundingRect2("W").Height()
-	fmt.Println(charW)
+	s.app = app
+
+	charW := app.FontMetrics().BoundingRect2("W").Width() * 2
+	//fmt.Println(charW)
 	s.window = widgets.NewQMainWindow(nil, core.Qt__Window)
 
 	s.window.SetWindowTitle(T("UserName"))
 
 	s.window.SetWindowIcon(gui.NewQIcon5(":/qml/icons/Sd.png"))
+	w := 53 * charW
+	s.window.SetMinimumWidth(w)
+	s.window.SetMinimumHeight(w * 9 / 16)
 
 	grid := widgets.NewQGridLayout2()
 
@@ -530,9 +535,7 @@ func (s *myWindow) Create(app *widgets.QApplication) {
 	grid.AddWidget3(leftArea, 0, 0, 2, 1, 0)
 
 	editor := s.createEditor(charW)
-	w := 53 * charW
-	s.window.SetMinimumWidth(w)
-	s.window.SetMinimumHeight(w * 9 / 16)
+
 	grid.AddWidget3(editor, 0, 1, 1, 1, 0)
 
 	comboBox := s.setupComboAttachs()
