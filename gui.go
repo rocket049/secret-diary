@@ -23,7 +23,7 @@ import (
 	"github.com/therecipe/qt/widgets"
 )
 
-const version = "1.1.9"
+const version = "1.1.10"
 
 func init() {
 	exe1, _ := os.Executable()
@@ -514,7 +514,8 @@ func (s *myWindow) Create(app *widgets.QApplication) {
 	app.SetFont(font, "standard")
 	s.app = app
 
-	charW := app.FontMetrics().BoundingRect2("W").Width() * 2
+	charW := s.charWidth()
+	//charW := app.FontMetrics().BoundingRect2("W").Width() * 2
 	//fmt.Println(charW)
 	s.window = widgets.NewQMainWindow(nil, core.Qt__Window)
 

@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -512,6 +513,20 @@ func OpenDiaryNewWindow(parent *myWindow, id int) *myWindow {
 	return win
 }
 
+func (s *myWindow) charWidth() int {
+	font := gui.NewQFont()
+
+	if runtime.GOOS == "windows" {
+		font.SetPointSize(14)
+	} else {
+		font.SetFamily("Serif Regular")
+		font.SetPointSize(12)
+	}
+
+	fm := gui.NewQFontMetrics(font)
+	return fm.BoundingRect2("M").Height()
+}
+
 func (s *myWindow) OpenNewWindow(parent *myWindow, id int) {
 	s.key = parent.key
 	s.curDiary.Id = id
@@ -529,7 +544,7 @@ func (s *myWindow) OpenNewWindow(parent *myWindow, id int) {
 
 	s.window.SetCentralWidget(frame)
 
-	charW := s.app.FontMetrics().BoundingRect2("W").Width() * 2
+	charW := s.charWidth()
 	editor := s.createEditor(charW)
 	s.window.SetMinimumWidth(s.editor.Width() + 100)
 
