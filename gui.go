@@ -510,8 +510,9 @@ func (s *myWindow) Create(app *widgets.QApplication) {
 
 	font := gui.NewQFont()
 	font.SetPointSize(12)
-	font.SetFamily("Serif Regular")
-	app.SetFont(font, "standard")
+	font.SetFamily("Serif")
+	font.SetStyleName("Regular")
+	app.SetFont(font, "serif-regular")
 	s.app = app
 
 	charW := s.charWidth()
