@@ -1386,15 +1386,15 @@ func (s *myWindow) login() {
 		}
 		s.db, err = getMyDb(nameInput.CurrentText())
 		if err != nil {
-			widgets.QMessageBox_Information(dlg, T("Information"), T("Fail")+err.Error(), widgets.QMessageBox__Ok, widgets.QMessageBox__Ok)
-			dlg.Hide()
-			s.window.Close()
+			widgets.QMessageBox_Information(dlg, T("Information"), T("Fail"), widgets.QMessageBox__Ok, widgets.QMessageBox__Ok)
+			nameInput.SetFocus2()
+			return
 		}
 		s.key, err = s.db.GetRealKey(pwdInput.Text())
 		if err != nil {
-			widgets.QMessageBox_Information(dlg, T("Information"), T("Fail")+err.Error(), widgets.QMessageBox__Ok, widgets.QMessageBox__Ok)
-			dlg.Hide()
-			s.window.Close()
+			widgets.QMessageBox_Information(dlg, T("Information"), T("Fail"), widgets.QMessageBox__Ok, widgets.QMessageBox__Ok)
+			pwdInput.SetFocus2()
+			return
 		}
 		s.saveLastUser(nameInput.CurrentText())
 		s.user = nameInput.CurrentText()
