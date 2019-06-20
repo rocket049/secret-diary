@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"path/filepath"
 	"regexp"
-	"runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -514,17 +513,18 @@ func OpenDiaryNewWindow(parent *myWindow, id int) *myWindow {
 }
 
 func (s *myWindow) charWidth() int {
-	font := gui.NewQFont()
+	// font := gui.NewQFont()
+	// font.SetFamily("Serif")
+	// if runtime.GOOS == "windows" {
+	// 	font.SetPointSize(16)
+	// } else {
+	// 	//font.SetFamily("Serif Regular")
+	// 	font.SetPointSize(12)
+	// }
 
-	if runtime.GOOS == "windows" {
-		font.SetPointSize(14)
-	} else {
-		font.SetFamily("Serif Regular")
-		font.SetPointSize(12)
-	}
-
-	fm := gui.NewQFontMetrics(font)
-	return fm.BoundingRect2("M").Height()
+	// fm := gui.NewQFontMetrics(font)
+	// return fm.BoundingRect2("M").Height()
+	return 24
 }
 
 func (s *myWindow) OpenNewWindow(parent *myWindow, id int) {
