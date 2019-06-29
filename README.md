@@ -8,10 +8,6 @@
 兼容 `linux/windows`。
 支持语言：中文、英语
 
-### [在 ubuntu 19.04 上运行的问题](RunOnUbuntu1904.md)
-
-### [How to run it on ubuntu 19.04](RunOnUbuntu1904.md)
-
 ### ChangeLog
 
 [At github](https://github.com/rocket049/secret-diary/releases)
