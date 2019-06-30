@@ -523,7 +523,7 @@ func (s *myWindow) Create(app *widgets.QApplication) {
 	s.window.SetWindowTitle(T("UserName"))
 
 	s.window.SetWindowIcon(gui.NewQIcon5(":/qml/icons/Sd.png"))
-	w := 53 * charW
+	w := 42 * charW
 	s.window.SetMinimumWidth(w)
 	s.window.SetMinimumHeight(w * 9 / 16)
 
@@ -580,11 +580,12 @@ func (s *myWindow) Create(app *widgets.QApplication) {
 func (s *myWindow) createLeftArea(charW int) widgets.QWidget_ITF {
 	spliter := widgets.NewQSplitter(nil)
 	spliter.SetOrientation(core.Qt__Vertical)
-	spliter.SetSizePolicy2(widgets.QSizePolicy__Fixed, widgets.QSizePolicy__Expanding)
+	spliter.SetSizePolicy2(widgets.QSizePolicy__Preferred, widgets.QSizePolicy__Expanding)
 
-	mwidth := charW * 15
+	mwidth := charW * 8
 
-	spliter.SetFixedWidth(mwidth)
+	spliter.SetMinimumWidth(mwidth)
+	spliter.SetMaximumWidth(mwidth * 2)
 
 	s.tree = widgets.NewQTreeView(s.window)
 	//s.tree.SetMinimumWidth(240)
@@ -636,7 +637,7 @@ func (s *myWindow) createEditor(charW int) widgets.QWidget_ITF {
 	scrollarea.SetHorizontalScrollBarPolicy(core.Qt__ScrollBarAsNeeded)
 	scrollarea.SetVerticalScrollBarPolicy(core.Qt__ScrollBarAlwaysOff)
 	scrollarea.SetAlignment(core.Qt__AlignCenter)
-	scrollarea.SetSizePolicy2(widgets.QSizePolicy__Preferred, widgets.QSizePolicy__Expanding)
+	scrollarea.SetSizePolicy2(widgets.QSizePolicy__Expanding, widgets.QSizePolicy__Expanding)
 	frame := widgets.NewQFrame(s.window, core.Qt__Widget)
 	grid := widgets.NewQGridLayout2()
 	s.editor = widgets.NewQTextEdit(s.window)
@@ -649,7 +650,8 @@ func (s *myWindow) createEditor(charW int) widgets.QWidget_ITF {
 	s.editor.SetTabStopWidth(charW * 2)
 	s.editor.SetFixedWidth(width)
 
-	scrollarea.SetMinimumWidth(width + 100)
+	scrollarea.SetMinimumWidth(width + 60)
+	scrollarea.SetMaximumWidth(width * 2)
 
 	s.editor.SetSizePolicy2(widgets.QSizePolicy__Fixed, widgets.QSizePolicy__Expanding)
 
