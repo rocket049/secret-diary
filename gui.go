@@ -439,6 +439,7 @@ func (s *myWindow) setStatusBar(msg string) {
 
 func (s *myWindow) setupComboAttachs() *widgets.QHBoxLayout {
 	hbox := widgets.NewQHBoxLayout()
+
 	s.comboAttachs = widgets.NewQComboBox(s.window)
 	s.comboAttachs.SetSizePolicy2(widgets.QSizePolicy__Expanding, widgets.QSizePolicy__Fixed)
 	list := []string{fmt.Sprintf("-- %s(%s:0) --", T("Select Attachments"), T("Total"))}
@@ -542,6 +543,7 @@ func (s *myWindow) Create(app *widgets.QApplication) {
 
 	comboBox := s.setupComboAttachs()
 	grid.AddLayout(comboBox, 1, 1, 0)
+	s.comboAttachs.SetMaximumWidth(charW*60 - 160)
 
 	grid.SetAlign(core.Qt__AlignTop)
 
@@ -582,7 +584,7 @@ func (s *myWindow) createLeftArea(charW int) widgets.QWidget_ITF {
 	spliter.SetOrientation(core.Qt__Vertical)
 	spliter.SetSizePolicy2(widgets.QSizePolicy__Preferred, widgets.QSizePolicy__Expanding)
 
-	mwidth := charW * 8
+	mwidth := charW * 9
 
 	spliter.SetMinimumWidth(mwidth)
 	spliter.SetMaximumWidth(mwidth * 2)
@@ -650,7 +652,7 @@ func (s *myWindow) createEditor(charW int) widgets.QWidget_ITF {
 	s.editor.SetTabStopWidth(charW * 2)
 	s.editor.SetFixedWidth(width)
 
-	scrollarea.SetMinimumWidth(width + 60)
+	scrollarea.SetMinimumWidth(width + 40)
 	scrollarea.SetMaximumWidth(width * 2)
 
 	s.editor.SetSizePolicy2(widgets.QSizePolicy__Fixed, widgets.QSizePolicy__Expanding)
