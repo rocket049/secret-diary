@@ -517,6 +517,7 @@ func (s *myWindow) Create(app *widgets.QApplication) {
 	s.app = app
 
 	charW := s.charWidth()
+
 	//charW := app.FontMetrics().BoundingRect2("W").Width() * 2
 	//fmt.Println(charW)
 	s.window = widgets.NewQMainWindow(nil, core.Qt__Window)

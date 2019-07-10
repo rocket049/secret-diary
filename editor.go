@@ -357,6 +357,7 @@ func (s *myWindow) getImageList(html string) []string {
 func (s *myWindow) insertTable() {
 	dlg := widgets.NewQDialog(s.window, core.Qt__Dialog)
 	dlg.SetWindowTitle(T("Table Rows and Columns"))
+	dlg.SetFixedWidth(s.charWidth() * 13)
 
 	grid := widgets.NewQGridLayout(dlg)
 
