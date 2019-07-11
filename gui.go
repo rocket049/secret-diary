@@ -640,7 +640,7 @@ func (s *myWindow) createEditor(charW int) widgets.QWidget_ITF {
 	s.editor.SetSizePolicy2(widgets.QSizePolicy__Fixed, widgets.QSizePolicy__Expanding)
 
 	scrollarea.ConnectResizeEvent(func(e *gui.QResizeEvent) {
-		frame.SetMinimumSize(core.NewQSize2(width, scrollarea.Geometry().Height()-10))
+		frame.SetFixedSize(core.NewQSize2(width+40, scrollarea.Geometry().Height()-10))
 	})
 
 	grid.AddWidget(s.editor, 0, 0, 0)
