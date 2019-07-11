@@ -933,7 +933,7 @@ func (s *myWindow) diaryPopup(idx *core.QModelIndex, e *gui.QMouseEvent) {
 		}
 		var ok bool
 		ret := widgets.QInputDialog_GetItem(s.window, T("Category"), T("Select a category"), items, 0, false, &ok, core.Qt__Dialog, 0)
-		if ok {
+		if ok && dict1[ret] != s.category {
 			s.db.UpdateDiaryCategory(id, dict1[ret])
 			s.model.RemoveRow(diary.Row(), diary.Index().Parent())
 		}
