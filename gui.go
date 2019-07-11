@@ -563,7 +563,7 @@ func (s *myWindow) Create(app *widgets.QApplication) {
 
 		s.db.Close()
 	})
-	s.window.Show()
+	s.window.ShowMaximized()
 }
 
 func (s *myWindow) createLeftArea(charW int) widgets.QWidget_ITF {
