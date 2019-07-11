@@ -23,7 +23,7 @@ import (
 	"github.com/therecipe/qt/widgets"
 )
 
-const version = "1.1.13"
+const version = "1.1.14"
 
 func init() {
 	exe1, _ := os.Executable()
@@ -518,41 +518,27 @@ func (s *myWindow) Create(app *widgets.QApplication) {
 
 	charW := s.charWidth()
 
-	//charW := app.FontMetrics().BoundingRect2("W").Width() * 2
-	//fmt.Println(charW)
 	s.window = widgets.NewQMainWindow(nil, core.Qt__Window)
 
 	s.window.SetWindowTitle(T("UserName"))
 
 	s.window.SetWindowIcon(gui.NewQIcon5(":/qml/icons/Sd.png"))
-	w := 42 * charW
-	s.window.SetMinimumWidth(w)
-	s.window.SetMinimumHeight(w * 9 / 16)
 
-	grid := widgets.NewQGridLayout2()
+	spliter := widgets.NewQSplitter2(core.Qt__Horizontal, s.window)
 
-	frame := widgets.NewQFrame(nil, core.Qt__Widget)
-
-	s.window.SetCentralWidget(frame)
+	s.window.SetCentralWidget(spliter)
 
 	leftArea := s.createLeftArea(charW)
-	grid.AddWidget3(leftArea, 0, 0, 2, 1, 0)
+
+	spliter.AddWidget(leftArea)
 
 	editor := s.createEditor(charW)
 
-	grid.AddWidget3(editor, 0, 1, 1, 1, 0)
-
-	comboBox := s.setupComboAttachs()
-	grid.AddLayout(comboBox, 1, 1, 0)
-	s.comboAttachs.SetMaximumWidth(charW*60 - 160)
-
-	grid.SetAlign(core.Qt__AlignTop)
+	spliter.AddWidget(editor)
 
 	s.setToolBar()
 
 	s.setMenuBar()
-
-	frame.SetLayout(grid)
 
 	app.SetActiveWindow(s.window)
 	app.SetApplicationDisplayName(T("Secret Diary"))
@@ -577,7 +563,7 @@ func (s *myWindow) Create(app *widgets.QApplication) {
 
 		s.db.Close()
 	})
-	s.window.Show()
+	s.window.ShowMaximized()
 }
 
 func (s *myWindow) createLeftArea(charW int) widgets.QWidget_ITF {
@@ -585,15 +571,11 @@ func (s *myWindow) createLeftArea(charW int) widgets.QWidget_ITF {
 	spliter.SetOrientation(core.Qt__Vertical)
 	spliter.SetSizePolicy2(widgets.QSizePolicy__Preferred, widgets.QSizePolicy__Expanding)
 
-	mwidth := charW * 9
-
-	spliter.SetMinimumWidth(mwidth)
-	spliter.SetMaximumWidth(mwidth * 2)
+	mwidth := charW * 18
 
 	s.tree = widgets.NewQTreeView(s.window)
-	//s.tree.SetMinimumWidth(240)
-	//s.tree.SetMinimumHeight(400)
-	s.tree.SetSizePolicy2(widgets.QSizePolicy__Expanding, widgets.QSizePolicy__Expanding)
+	s.tree.SetMaximumWidth(mwidth)
+	s.tree.SetSizePolicy2(widgets.QSizePolicy__Preferred, widgets.QSizePolicy__Expanding)
 	s.tree.SetHorizontalScrollBarPolicy(core.Qt__ScrollBarAsNeeded)
 	s.tree.SetAutoScroll(true)
 	s.model = gui.NewQStandardItemModel2(0, 1, s.tree)
@@ -617,9 +599,8 @@ func (s *myWindow) createLeftArea(charW int) widgets.QWidget_ITF {
 	})
 
 	s.treeFind = widgets.NewQTreeView(s.window)
-	//s.treeFind.SetMinimumWidth(240)
 
-	s.treeFind.SetSizePolicy2(widgets.QSizePolicy__Expanding, widgets.QSizePolicy__Preferred)
+	s.treeFind.SetSizePolicy2(widgets.QSizePolicy__Preferred, widgets.QSizePolicy__Preferred)
 	s.treeFind.SetHorizontalScrollBarPolicy(core.Qt__ScrollBarAsNeeded)
 	s.treeFind.SetAutoScroll(true)
 	s.modelFind = gui.NewQStandardItemModel2(0, 1, s.treeFind)
@@ -627,8 +608,7 @@ func (s *myWindow) createLeftArea(charW int) widgets.QWidget_ITF {
 	s.treeFind.SetModel(s.modelFind)
 	grid.AddWidget3(s.treeFind, 1, 0, 1, 2, 0)
 	search.SetLayout(grid)
-	//search.SetMinimumHeight(100)
-	search.SetSizePolicy2(widgets.QSizePolicy__Expanding, widgets.QSizePolicy__Minimum)
+
 	spliter.AddWidget(search)
 
 	s.setTreeFindFuncs()
@@ -636,9 +616,11 @@ func (s *myWindow) createLeftArea(charW int) widgets.QWidget_ITF {
 }
 
 func (s *myWindow) createEditor(charW int) widgets.QWidget_ITF {
+	editorLayout := widgets.NewQVBoxLayout()
+
 	scrollarea := widgets.NewQScrollArea(s.window)
 	scrollarea.SetHorizontalScrollBarPolicy(core.Qt__ScrollBarAsNeeded)
-	scrollarea.SetVerticalScrollBarPolicy(core.Qt__ScrollBarAlwaysOff)
+	scrollarea.SetVerticalScrollBarPolicy(core.Qt__ScrollBarAsNeeded)
 	scrollarea.SetAlignment(core.Qt__AlignCenter)
 	scrollarea.SetSizePolicy2(widgets.QSizePolicy__Expanding, widgets.QSizePolicy__Expanding)
 	frame := widgets.NewQFrame(s.window, core.Qt__Widget)
@@ -653,21 +635,30 @@ func (s *myWindow) createEditor(charW int) widgets.QWidget_ITF {
 	s.editor.SetTabStopWidth(charW * 2)
 	s.editor.SetFixedWidth(width)
 
-	scrollarea.SetMinimumWidth(width + 40)
-	scrollarea.SetMaximumWidth(width * 2)
+	scrollarea.SetMinimumWidth(width + 30)
 
 	s.editor.SetSizePolicy2(widgets.QSizePolicy__Fixed, widgets.QSizePolicy__Expanding)
 
 	scrollarea.ConnectResizeEvent(func(e *gui.QResizeEvent) {
-		frame.SetMinimumSize(core.NewQSize2(width+40, scrollarea.Geometry().Height()-10))
+		frame.SetFixedSize(core.NewQSize2(width+40, scrollarea.Geometry().Height()-10))
 	})
 
 	grid.AddWidget(s.editor, 0, 0, 0)
+
+	comboBox := s.setupComboAttachs()
+	//grid.AddLayout(comboBox, 1, 0, 0)
+
 	grid.SetAlign(core.Qt__AlignHCenter)
 	frame.SetLayout(grid)
 	scrollarea.SetWidget(frame)
 
-	return scrollarea
+	editorLayout.AddWidget(scrollarea, 1, 0)
+	editorLayout.AddLayout(comboBox, 1)
+
+	res := widgets.NewQWidget(s.window, core.Qt__Widget)
+	res.SetLayout(editorLayout)
+
+	return res
 }
 
 func (s *myWindow) saveCurDiary() {
