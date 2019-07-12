@@ -536,6 +536,9 @@ func (s *myWindow) Create(app *widgets.QApplication) {
 
 	spliter.AddWidget(editor)
 
+	spliter.SetStretchFactor(0, 1)
+	spliter.SetStretchFactor(1, 2)
+
 	s.setToolBar()
 
 	s.setMenuBar()
@@ -571,10 +574,10 @@ func (s *myWindow) createLeftArea(charW int) widgets.QWidget_ITF {
 	spliter.SetOrientation(core.Qt__Vertical)
 	spliter.SetSizePolicy2(widgets.QSizePolicy__Preferred, widgets.QSizePolicy__Expanding)
 
-	mwidth := charW * 18
+	//mwidth := charW * 18
 
 	s.tree = widgets.NewQTreeView(s.window)
-	s.tree.SetMaximumWidth(mwidth)
+	//s.tree.SetMaximumWidth(mwidth)
 	s.tree.SetSizePolicy2(widgets.QSizePolicy__Preferred, widgets.QSizePolicy__Expanding)
 	s.tree.SetHorizontalScrollBarPolicy(core.Qt__ScrollBarAsNeeded)
 	s.tree.SetAutoScroll(true)
@@ -635,12 +638,13 @@ func (s *myWindow) createEditor(charW int) widgets.QWidget_ITF {
 	s.editor.SetTabStopWidth(charW * 2)
 	s.editor.SetFixedWidth(width)
 
-	scrollarea.SetMinimumWidth(width + 30)
+	scrollarea.SetMinimumWidth(width + 40)
 
 	s.editor.SetSizePolicy2(widgets.QSizePolicy__Fixed, widgets.QSizePolicy__Expanding)
 
 	scrollarea.ConnectResizeEvent(func(e *gui.QResizeEvent) {
-		frame.SetFixedSize(core.NewQSize2(width+40, scrollarea.Geometry().Height()-10))
+		frame.SetFixedSize(core.NewQSize2(width+40, scrollarea.Geometry().Height()))
+		scrollarea.ActivateWindow()
 	})
 
 	grid.AddWidget(s.editor, 0, 0, 0)
@@ -924,7 +928,7 @@ func (s *myWindow) diaryPopup(idx *core.QModelIndex, e *gui.QMouseEvent) {
 		}
 		var ok bool
 		ret := widgets.QInputDialog_GetItem(s.window, T("Category"), T("Select a category"), items, 0, false, &ok, core.Qt__Dialog, 0)
-		if ok {
+		if ok && dict1[ret] != s.category {
 			s.db.UpdateDiaryCategory(id, dict1[ret])
 			s.model.RemoveRow(diary.Row(), diary.Index().Parent())
 		}
