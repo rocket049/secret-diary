@@ -402,8 +402,9 @@ func (s *myWindow) insertTable() {
 		}
 		tbl := cursor.InsertTable2(r, c)
 		tbl.Format().SetBorderBrush(gui.NewQBrush2(core.Qt__SolidPattern))
+		A := 'A'
 		for i := 0; i < c; i++ {
-			tbl.CellAt(0, i).FirstCursorPosition().InsertText(fmt.Sprintf(" %d ", i+1))
+			tbl.CellAt(0, i).FirstCursorPosition().InsertText(fmt.Sprintf(" %c ", A+rune(i)))
 		}
 		dlg.Hide()
 		dlg.Destroy(true, true)
