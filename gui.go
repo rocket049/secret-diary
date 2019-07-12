@@ -870,10 +870,34 @@ func (s *myWindow) selectDiary(idx *core.QModelIndex) {
 
 }
 
+func (s *myWindow) popupOnMonth(item *gui.QStandardItem, point *core.QPoint) {
+	s.lockEditor()
+	menu := widgets.NewQMenu(s.tree)
+	refreshItem := menu.AddAction(T("Refresh"))
+	refreshItem.ConnectTriggered(func(checked bool) {
+		items, err := s.db.GetListFromYearMonth(item.Text())
+		idx := item.Index()
+		item.RemoveRows(0, item.RowCount())
+		r, c := idx.Row(), idx.Column()
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		for i := 0; i < len(items); i++ {
+			s.bridge.AddDiary(strconv.Itoa(items[i].Id), items[i].Day, items[i].Title, items[i].MTime, r, c)
+		}
+
+		s.bridge.SetMonthFlag(r, c)
+		s.tree.Expand(idx)
+	})
+	menu.Popup(point, nil)
+}
+
 func (s *myWindow) diaryPopup(idx *core.QModelIndex, e *gui.QMouseEvent) {
 	//fmt.Println("popup")
 	diary := s.model.ItemFromIndex(s.tree.CurrentIndex())
 	if diary.AccessibleDescription() != "0" {
+		s.popupOnMonth(diary, e.GlobalPos())
 		return
 	}
 	s.selectDiary(idx)
@@ -942,6 +966,14 @@ func (s *myWindow) diaryPopup(idx *core.QModelIndex, e *gui.QMouseEvent) {
 	menu.Popup(e.GlobalPos(), nil)
 }
 
+func (s *myWindow) lockEditor() {
+	s.saveCurDiary()
+	s.curDiary.Item = nil
+	s.editor.Clear()
+	s.editor.SetReadOnly(true)
+	s.editor.Document().SetModified(false)
+}
+
 func (s *myWindow) onSelectItem(idx *core.QModelIndex) {
 	item := s.model.ItemFromIndex(idx)
 	//fmt.Println("AD:", item.AccessibleDescription())
@@ -949,6 +981,7 @@ func (s *myWindow) onSelectItem(idx *core.QModelIndex) {
 	case "0":
 		s.selectDiary(idx)
 	case "1":
+		s.lockEditor()
 		return
 
 	default:

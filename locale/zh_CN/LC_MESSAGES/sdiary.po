@@ -411,3 +411,6 @@ msgstr "宽"
 
 msgid "Height"
 msgstr "高"
+
+msgid "Refresh"
+msgstr "刷新"
