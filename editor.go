@@ -871,6 +871,7 @@ func (s *myWindow) changeLineMargin() {
 
 	dlg := widgets.NewQDialog(s.window, core.Qt__Dialog)
 	dlg.SetWindowTitle(T("Top Margin"))
+	dlg.SetMinimumWidth(s.charWidth() * 10)
 	layout := widgets.NewQHBoxLayout()
 
 	label := widgets.NewQLabel2(T("Top Margin")+fmt.Sprintf(":%.0f", margin), dlg, core.Qt__Widget)
