@@ -414,3 +414,9 @@ msgstr "高"
 
 msgid "Refresh"
 msgstr "刷新"
+
+msgid "Top Margin"
+msgstr "段前间距"
+
+msgid "Format Brush"
+msgstr "格式刷"

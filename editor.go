@@ -860,3 +860,40 @@ func (s *myWindow) pasteText() {
 	cursor := s.editor.TextCursor()
 	cursor.InsertText(text)
 }
+
+func (s *myWindow) changeLineMargin() {
+	cursor := s.editor.TextCursor()
+	if !cursor.HasSelection() {
+		cursor.Select(gui.QTextCursor__LineUnderCursor)
+	}
+	bfmt := cursor.BlockFormat()
+	margin := bfmt.TopMargin()
+
+	dlg := widgets.NewQDialog(s.window, core.Qt__Dialog)
+	dlg.SetWindowTitle(T("Top Margin"))
+	layout := widgets.NewQHBoxLayout()
+
+	label := widgets.NewQLabel2(T("Top Margin:")+fmt.Sprint(margin), dlg, core.Qt__Widget)
+	layout.AddWidget(label, 1, 0)
+
+	addBtn := widgets.NewQPushButton2("+", dlg)
+	layout.AddWidget(addBtn, 1, 0)
+	addBtn.ConnectClicked(func(b bool) {
+		margin += 1.0
+		bfmt.SetTopMargin(margin)
+		cursor.SetBlockFormat(bfmt)
+		label.SetText(T("Top Margin:") + fmt.Sprintf("%.0f", margin))
+	})
+
+	degreeBtn := widgets.NewQPushButton2("-", dlg)
+	layout.AddWidget(degreeBtn, 1, 0)
+	degreeBtn.ConnectClicked(func(b bool) {
+		margin -= 1.0
+		bfmt.SetTopMargin(margin)
+		cursor.SetBlockFormat(bfmt)
+		label.SetText(T("Top Margin") + fmt.Sprintf(":%.0f", margin))
+	})
+
+	dlg.SetLayout(layout)
+	dlg.Show()
+}

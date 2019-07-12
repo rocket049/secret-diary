@@ -45,6 +45,11 @@ func T(v string) string {
 	return gettext.T(v)
 }
 
+type formatData struct {
+	BF *gui.QTextBlockFormat
+	CF *gui.QTextCharFormat
+}
+
 type myWindow struct {
 	app                 *widgets.QApplication
 	window              *widgets.QMainWindow
@@ -64,12 +69,14 @@ type myWindow struct {
 	paste               *widgets.QAction
 	search              *widgets.QAction
 	replace             *widgets.QAction
+	lineMargin          *widgets.QAction
 	searchInput         *widgets.QLineEdit
 	replaceInput        *widgets.QLineEdit
 	newDiary            *widgets.QAction
 	saveDiary           *widgets.QAction
 	renDiary            *widgets.QAction
 	modifyPwd           *widgets.QAction
+	fb                  *widgets.QAction
 	categories          *widgets.QMenu
 	category            int
 	categoryName        string
@@ -80,6 +87,7 @@ type myWindow struct {
 	db                  *myDb
 	bridge              *QmlBridge
 	document            qtextFormat
+	format              formatData
 }
 
 func (s *myWindow) getNewId() (res int) {
@@ -165,6 +173,12 @@ func (s *myWindow) setMenuBar() {
 	s.replace.SetShortcut(gui.QKeySequence_FromString("Ctrl+r", gui.QKeySequence__NativeText))
 	s.replace.ConnectTriggered(func(b bool) {
 		s.replaceText()
+	})
+
+	s.lineMargin = menu.AddAction(T("Top Margin"))
+	s.lineMargin.SetShortcut(gui.QKeySequence_FromString("Ctrl+l", gui.QKeySequence__NativeText))
+	s.lineMargin.ConnectTriggered(func(b bool) {
+		s.changeLineMargin()
 	})
 
 	menu = menubar.AddMenu2(T("Table"))
@@ -372,6 +386,19 @@ func (s *myWindow) setToolBar() {
 	degreeIdent := bar.AddAction2(icon, T("Decrease Ident"))
 	degreeIdent.ConnectTriggered(func(checked bool) {
 		s.addIndent(-1)
+	})
+
+	icon = gui.NewQIcon5(":/qml/icons/brush.png")
+	s.fb = bar.AddAction2(icon, T("Format Brush"))
+	s.fb.SetCheckable(true)
+	s.fb.ConnectTriggered(func(checked bool) {
+		cursor := s.editor.TextCursor()
+		if !cursor.HasSelection() {
+			cursor.Select(gui.QTextCursor__LineUnderCursor)
+		}
+		s.format.BF = cursor.BlockFormat()
+		s.format.CF = cursor.CharFormat()
+		s.fb.SetChecked(true)
 	})
 
 	comboStyle := widgets.NewQComboBox(bar)
@@ -1134,7 +1161,25 @@ func (s *myWindow) setEditorFuncs() {
 		menu.QWidget.AddAction(s.search)
 		menu.QWidget.AddAction(s.replace)
 
+		menu.QWidget.AddAction(s.lineMargin)
+
 		menu.Popup(e.GlobalPos(), nil)
+	})
+
+	s.editor.ConnectMouseReleaseEvent(func(e *gui.QMouseEvent) {
+		defer e.Accept()
+		if s.format.BF == nil {
+			return
+		}
+		cursor := s.editor.TextCursor()
+		if !cursor.HasSelection() {
+			cursor.Select(gui.QTextCursor__LineUnderCursor)
+		}
+		cursor.SetBlockFormat(s.format.BF)
+		cursor.SetCharFormat(s.format.CF)
+		s.format.BF = nil
+		s.format.CF = nil
+		s.fb.SetChecked(false)
 	})
 
 }
