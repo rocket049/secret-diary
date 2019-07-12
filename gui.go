@@ -886,7 +886,18 @@ func (s *myWindow) popupOnMonth(item *gui.QStandardItem, point *core.QPoint) {
 			return
 		}
 		for i := 0; i < len(items); i++ {
-			s.bridge.AddDiary(strconv.Itoa(items[i].Id), items[i].Day, items[i].Title, items[i].MTime, r, c)
+			id := strconv.Itoa(items[i].Id)
+			day := items[i].Day
+			title := items[i].Title
+			mtime := items[i].MTime
+
+			diary := gui.NewQStandardItem2(fmt.Sprintf("%s-%s", day, title))
+			diary.SetEditable(false)
+			diary.SetAccessibleText(id)
+			diary.SetAccessibleDescription("0")
+			diary.SetToolTip(T("Last Modified:") + mtime)
+
+			item.AppendRow2(diary)
 		}
 
 		s.bridge.SetMonthFlag(r, c)
@@ -1014,7 +1025,6 @@ func (s *myWindow) setTreeFuncs() {
 		s.tree.SetCurrentIndex(idx)
 		switch e.Button() {
 		case core.Qt__LeftButton:
-			//s.tree.SetCurrentIndex(idx)
 			return
 		case core.Qt__RightButton:
 			s.diaryPopup(idx, e)

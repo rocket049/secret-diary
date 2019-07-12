@@ -514,6 +514,7 @@ func (s *myWindow) clearFormatAtCursor() {
 func OpenDiaryNewWindow(parent *myWindow, id int) *myWindow {
 	win := new(myWindow)
 	win.OpenNewWindow(parent, id)
+	parent.LockEditor()
 	return win
 }
 
@@ -554,9 +555,6 @@ func (s *myWindow) OpenNewWindow(parent *myWindow, id int) {
 	s.window.SetMinimumWidth(s.editor.Width() + 100)
 
 	grid.AddWidget3(editor, 0, 0, 1, 1, 0)
-
-	comboBox := s.setupComboAttachs()
-	grid.AddLayout(comboBox, 1, 0, 0)
 
 	grid.SetAlign(core.Qt__AlignTop)
 
