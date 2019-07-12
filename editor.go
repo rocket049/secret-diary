@@ -873,19 +873,21 @@ func (s *myWindow) changeLineMargin() {
 	dlg.SetWindowTitle(T("Top Margin"))
 	layout := widgets.NewQHBoxLayout()
 
-	label := widgets.NewQLabel2(T("Top Margin:")+fmt.Sprint(margin), dlg, core.Qt__Widget)
+	label := widgets.NewQLabel2(T("Top Margin")+fmt.Sprintf(":%.0f", margin), dlg, core.Qt__Widget)
 	layout.AddWidget(label, 1, 0)
 
 	addBtn := widgets.NewQPushButton2("+", dlg)
+	addBtn.SetFixedWidth(s.charWidth())
 	layout.AddWidget(addBtn, 1, 0)
 	addBtn.ConnectClicked(func(b bool) {
 		margin += 1.0
 		bfmt.SetTopMargin(margin)
 		cursor.SetBlockFormat(bfmt)
-		label.SetText(T("Top Margin:") + fmt.Sprintf("%.0f", margin))
+		label.SetText(T("Top Margin") + fmt.Sprintf(":%.0f", margin))
 	})
 
 	degreeBtn := widgets.NewQPushButton2("-", dlg)
+	degreeBtn.SetFixedWidth(s.charWidth())
 	layout.AddWidget(degreeBtn, 1, 0)
 	degreeBtn.ConnectClicked(func(b bool) {
 		margin -= 1.0
