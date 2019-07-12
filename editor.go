@@ -620,6 +620,7 @@ func (s *myWindow) saveDiaryAlone() {
 	s.db.UpdateDiaryTitle(s.curDiary.Id, title)
 
 	s.setStatusBar(T("Save Diary") + fmt.Sprintf(" %s(%s)", title, filename))
+	s.editor.Document().SetModified(false)
 }
 
 func (s *myWindow) searchFromDb(kw string) {

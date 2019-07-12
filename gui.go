@@ -873,7 +873,7 @@ func (s *myWindow) selectDiary(idx *core.QModelIndex) {
 }
 
 func (s *myWindow) popupOnMonth(item *gui.QStandardItem, point *core.QPoint) {
-	s.lockEditor()
+	s.LockEditor()
 	menu := widgets.NewQMenu(s.tree)
 	refreshItem := menu.AddAction(T("Refresh"))
 	refreshItem.ConnectTriggered(func(checked bool) {
@@ -979,7 +979,7 @@ func (s *myWindow) diaryPopup(idx *core.QModelIndex, e *gui.QMouseEvent) {
 	menu.Popup(e.GlobalPos(), nil)
 }
 
-func (s *myWindow) lockEditor() {
+func (s *myWindow) LockEditor() {
 	s.saveCurDiary()
 	s.curDiary.Item = nil
 	s.editor.Clear()
@@ -994,7 +994,7 @@ func (s *myWindow) onSelectItem(idx *core.QModelIndex) {
 	case "0":
 		s.selectDiary(idx)
 	case "1":
-		s.lockEditor()
+		s.LockEditor()
 		return
 
 	default:
