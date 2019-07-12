@@ -759,6 +759,7 @@ func (s *myWindow) addYearMonthsFromDb() {
 		diary.SetToolTip(T("Last Modified:") + mtime)
 
 		item.AppendRow2(diary)
+		wg.Done()
 	})
 	s.bridge.ConnectSetMonthFlag(func(r, c int) {
 		item := s.model.TakeItem(r, c)
@@ -793,9 +794,10 @@ func (s *myWindow) addYearMonthsFromDb() {
 				return
 			}
 			for i := 0; i < len(items); i++ {
+				wg.Add(1)
 				s.bridge.AddDiary(strconv.Itoa(items[i].Id), items[i].Day, items[i].Title, items[i].MTime, r, c)
 			}
-
+			wg.Wait()
 			s.bridge.SetMonthFlag(r, c)
 
 		}
@@ -1009,10 +1011,11 @@ func (s *myWindow) setTreeFuncs() {
 		if !idx.IsValid() {
 			return
 		}
-
+		s.tree.SetCurrentIndex(idx)
 		switch e.Button() {
 		case core.Qt__LeftButton:
-			s.tree.SetCurrentIndex(idx)
+			//s.tree.SetCurrentIndex(idx)
+			return
 		case core.Qt__RightButton:
 			s.diaryPopup(idx, e)
 		}
@@ -1021,7 +1024,7 @@ func (s *myWindow) setTreeFuncs() {
 
 	s.tree.ConnectSelectionChanged(func(selected *core.QItemSelection, deselected *core.QItemSelection) {
 		idxes := selected.Indexes()
-		if len(idxes) > 0 {
+		if len(idxes) == 1 {
 			s.onSelectItem(idxes[0])
 		}
 
