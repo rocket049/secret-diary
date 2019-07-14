@@ -93,10 +93,13 @@ func appimageLauncher(force bool) error {
 		return nil
 	}
 
-	iconSrc := filepath.Join(appdir, "usr/share/icons/powerchat/"+icon)
+	iconSrc := filepath.Join(appdir, icon)
+
 	iconDir := filepath.Join(home, ".local", "share", "icons", appname)
-	os.MkdirAll(iconDir, os.ModePerm)
 	iconDst := filepath.Join(iconDir, icon)
+
+	os.MkdirAll(iconDir, os.ModePerm)
+
 	copyFile(iconSrc, iconDst, 0644)
 
 	data := struct {
