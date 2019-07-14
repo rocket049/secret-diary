@@ -9,8 +9,8 @@ import (
 	"text/template"
 )
 
-func copyFile(src, dst string, mode os.FileMode) error {
-	fp1, err := os.OpenFile(dst, os.O_CREATE|os.O_WRONLY, mode)
+func copyFile(src, dst string) error {
+	fp1, err := os.Create(dst)
 	if err != nil {
 		return err
 	}
@@ -21,6 +21,7 @@ func copyFile(src, dst string, mode os.FileMode) error {
 	}
 	defer fp2.Close()
 	_, err = io.Copy(fp1, fp2)
+	log.Println("copy", src, dst)
 	return err
 }
 
@@ -100,7 +101,10 @@ func appimageLauncher(force bool) error {
 
 	os.MkdirAll(iconDir, os.ModePerm)
 
-	copyFile(iconSrc, iconDst, 0644)
+	err := copyFile(iconSrc, iconDst)
+	if err != nil {
+		log.Println(err)
+	}
 
 	data := struct {
 		AppName  string
