@@ -580,7 +580,10 @@ func (s *myWindow) Create(app *widgets.QApplication) {
 
 	once := sync.Once{}
 	s.window.ConnectShowEvent(func(e *gui.QShowEvent) {
-		once.Do(s.login)
+		once.Do(func() {
+			appimageLauncher(false)
+			s.login()
+		})
 	})
 
 	s.window.ConnectCloseEvent(func(e *gui.QCloseEvent) {
