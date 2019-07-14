@@ -584,6 +584,7 @@ func (s *myWindow) Create(app *widgets.QApplication) {
 			err := appimageLauncher(false)
 			if err != nil {
 				log.Println(err)
+				makeLauncher("Secret-Diary", "secret-diary", "Sd.png", false)
 			}
 			s.login()
 		})

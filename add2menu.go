@@ -25,7 +25,12 @@ func copyFile(src, dst string) error {
 	return err
 }
 
-func makeLauncher(launcherName, fileName, iconName string) {
+func makeLauncher(launcherName, fileName, iconName string, force bool) {
+	_, err := os.Lstat("/usr/local/share/applications/Secret-Diary.desktop")
+	if err == nil {
+		//install from deb
+		return
+	}
 	exe1, _ := os.Executable()
 	appdir := filepath.Dir(exe1)
 	appname := filepath.Join(appdir, fileName)
@@ -33,6 +38,11 @@ func makeLauncher(launcherName, fileName, iconName string) {
 	os.MkdirAll(filepath.Join(home, ".local", "share", "applications"), os.ModePerm)
 	dst := filepath.Join(home, ".local", "share", "applications", launcherName+".desktop")
 	iconSrc := filepath.Join(appdir, iconName)
+
+	if isNewer(dst, iconSrc) && force == false {
+		//already exist
+		return
+	}
 
 	data := struct {
 		LauncherName string
@@ -121,7 +131,7 @@ Icon={{.Icon}}
 Terminal=false
 Type=Application
 StartupNotify=true
-Categories={{.Category}};
+Categories={{.Category}}
 	
 `
 	t := template.New("")
@@ -139,6 +149,6 @@ Categories={{.Category}};
 func addToMenu() {
 	err := appimageLauncher(true)
 	if err != nil {
-		makeLauncher("Secret-Diary", "secret-diary", "Sd.png")
+		makeLauncher("Secret-Diary", "secret-diary", "Sd.png", true)
 	}
 }
