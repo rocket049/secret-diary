@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bufio"
+	"bytes"
 	"errors"
 	"io"
 	"log"
@@ -88,9 +90,8 @@ func isNewer(fileNew, fileOld string) bool {
 }
 
 func appimageLauncher(force bool) error {
-	appname := "Secret-Diary"
+	desktop := "Secret-Diary.desktop"
 	icon := "Sd.png"
-	category := "Office;"
 
 	appimage := os.Getenv("APPIMAGE")
 	appdir := os.Getenv("APPDIR")
@@ -99,14 +100,16 @@ func appimageLauncher(force bool) error {
 	}
 
 	home, _ := os.UserHomeDir()
-	dst := filepath.Join(home, ".local", "share", "applications", appname+".desktop")
+
+	src := filepath.Join(appdir, desktop)
+	dst := filepath.Join(home, ".local", "share", "applications", desktop)
 	if isNewer(dst, appimage) && force == false {
 		return nil
 	}
 
 	iconSrc := filepath.Join(appdir, icon)
 
-	iconDir := filepath.Join(home, ".local", "share", "icons", appname)
+	iconDir := filepath.Join(home, ".local", "share", "icons")
 	iconDst := filepath.Join(iconDir, icon)
 
 	os.MkdirAll(iconDir, os.ModePerm)
@@ -116,33 +119,32 @@ func appimageLauncher(force bool) error {
 		log.Println(err)
 	}
 
-	data := struct {
-		AppName  string
-		Name     string
-		Icon     string
-		Category string
-	}{appname, appimage, iconDst, category}
+	srcFp, err := os.Open(src)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	defer srcFp.Close()
+	reader := bufio.NewReader(srcFp)
 
-	tpl := `[Desktop Entry]
-Name={{.AppName}}
-Comment={{.AppName}}
-Exec="{{.Name}}" %U
-Icon={{.Icon}}
-Terminal=false
-Type=Application
-StartupNotify=true
-Categories={{.Category}}
-	
-`
-	t := template.New("")
-	t.Parse(tpl)
 	fp, err := os.Create(dst)
 	if err != nil {
 		log.Println(err)
 		return err
 	}
 	defer fp.Close()
-	t.Execute(fp, data)
+	for {
+		line, _, err := reader.ReadLine()
+		if err != nil {
+			break
+		}
+		if bytes.HasPrefix(line, []byte("Exec=")) {
+			fp.WriteString("Exec=" + appimage + "\n")
+		} else {
+			fp.Write(line)
+			fp.WriteString("\n")
+		}
+	}
 	return nil
 }
 
