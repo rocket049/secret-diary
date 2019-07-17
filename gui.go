@@ -581,6 +581,7 @@ func (s *myWindow) Create(app *widgets.QApplication) {
 	once := sync.Once{}
 	s.window.ConnectShowEvent(func(e *gui.QShowEvent) {
 		once.Do(func() {
+			windowsShortcut()
 			err := appimageLauncher(false)
 			if err != nil {
 				log.Println(err)

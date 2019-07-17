@@ -4,11 +4,16 @@ import (
 	"bufio"
 	"bytes"
 	"errors"
+	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
+	"runtime"
 	"text/template"
+
+	"github.com/skratchdot/open-golang/open"
 )
 
 func copyFile(src, dst string) error {
@@ -153,4 +158,30 @@ func addToMenu() {
 	if err != nil {
 		makeLauncher("Secret-Diary", "secret-diary", "Sd.png", true)
 	}
+}
+
+func windowsShortcut() error {
+	if runtime.GOOS != "windows" {
+		return errors.New("Not windows")
+	}
+	exe1, _ := os.Executable()
+	appdir := filepath.Dir(exe1)
+	appname := filepath.Join(appdir, "secret-diary.exe")
+	script := filepath.Join(appdir, "shortcut.vbs")
+	bat := filepath.Join(appdir, "shortcut.bat")
+	_, err := os.Lstat(bat)
+	if err == nil {
+		return err
+	}
+
+	//cmd1 := exec.Command("cmd", "/C", "start", "wscript", script, fmt.Sprintf("/target:\"%s\"", appname))
+	writeBat(bat, "cmd", "/Q", "/C", "start", "wscript", script, fmt.Sprintf(`/target:"%s"`, appname), "\r\nexit\r\n")
+
+	open.Start(bat)
+
+	return nil
+}
+
+func writeBat(bat string, msgs ...interface{}) {
+	ioutil.WriteFile(bat, []byte(fmt.Sprintln(msgs...)), 0644)
 }
