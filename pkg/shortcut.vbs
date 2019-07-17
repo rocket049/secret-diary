@@ -1,10 +1,8 @@
 Set WshShell = WScript.CreateObject("WScript.Shell")
 strDesktop = WshShell.SpecialFolders("Desktop")
 
-If IsExitAFile(strDesktop & "\secret-diary.lnk") Then
-	rem "exists"
-Else
-	CreateShortcut(strDesktop & "\secret-diary.lnk")
+If IsExitAFile(strDesktop & "\sdiary.lnk") Then
+	CreateShortcut(strDesktop & "\sdiary.lnk")
 End If
 
 Function IsExitAFile(filespec)
@@ -17,9 +15,8 @@ Function IsExitAFile(filespec)
 End Function 
 
 Sub CreateShortcut(filespec)
-	Set WshShell = WScript.CreateObject("WScript.Shell")
-	Set oShellLink = WshShell.CreateShortcut(filespec)
-	oShellLink.TargetPath = Wscript.Arguments.Named("target")
+	set oShellLink = WshShell.CreateShortcut(filespec)
+	oShellLink.TargetPath = "{{.}}"
 	oShellLink.WindowStyle = 3 
 	oShellLink.Save
 End Sub
