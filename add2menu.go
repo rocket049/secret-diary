@@ -174,8 +174,7 @@ func windowsShortcut() error {
 		return err
 	}
 
-	//cmd1 := exec.Command("cmd", "/C", "start", "wscript", script, fmt.Sprintf("/target:\"%s\"", appname))
-	writeBat(bat, "cmd", "/Q", "/C", "start", "wscript", script, fmt.Sprintf(`/target:"%s"`, appname), "\r\nexit\r\n")
+	writeBat(bat, "wscript", script, fmt.Sprintf(`/target:"%s"`, appname), "\r\nexit\r\n")
 
 	open.Start(bat)
 
