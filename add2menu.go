@@ -14,6 +14,7 @@ import (
 	"text/template"
 
 	"github.com/skratchdot/open-golang/open"
+	"golang.org/x/text/encoding/simplifiedchinese"
 )
 
 func copyFile(src, dst string) error {
@@ -182,5 +183,15 @@ func windowsShortcut() error {
 }
 
 func writeBat(bat string, msgs ...interface{}) {
-	ioutil.WriteFile(bat, []byte(fmt.Sprintln(msgs...)), 0644)
+	var buf = []byte(fmt.Sprintln(msgs...))
+	var err error = nil
+	if ctype == "cn" {
+		enc := simplifiedchinese.GB18030.NewEncoder()
+		buf, err = enc.Bytes(buf)
+	}
+
+	if err == nil {
+		ioutil.WriteFile(bat, buf, 0644)
+	}
+
 }

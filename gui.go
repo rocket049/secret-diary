@@ -19,11 +19,14 @@ import (
 
 	"github.com/rocket049/gettext-go/gettext"
 
+	locale "github.com/rocket049/go-locale"
 	"github.com/therecipe/qt/core"
 	"github.com/therecipe/qt/widgets"
 )
 
 const version = "1.1.18"
+
+var ctype string
 
 func init() {
 	exe1, _ := os.Executable()
@@ -31,6 +34,14 @@ func init() {
 	locale1 := path.Join(dir1, "locale")
 	gettext.BindTextdomain("sdiary", locale1, nil)
 	gettext.Textdomain("sdiary")
+	if runtime.GOOS == "windows" {
+		loc, _ := locale.DetectLocale()
+		switch loc {
+		case "zh_CN":
+			ctype = "cn"
+		}
+	}
+
 }
 
 type diaryPointer struct {
