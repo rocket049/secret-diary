@@ -19,14 +19,11 @@ import (
 
 	"github.com/rocket049/gettext-go/gettext"
 
-	locale "github.com/rocket049/go-locale"
 	"github.com/therecipe/qt/core"
 	"github.com/therecipe/qt/widgets"
 )
 
 const version = "1.1.18"
-
-var ctype string
 
 func init() {
 	exe1, _ := os.Executable()
@@ -34,13 +31,6 @@ func init() {
 	locale1 := path.Join(dir1, "locale")
 	gettext.BindTextdomain("sdiary", locale1, nil)
 	gettext.Textdomain("sdiary")
-	if runtime.GOOS == "windows" {
-		loc, _ := locale.DetectLocale()
-		switch loc {
-		case "zh_CN":
-			ctype = "cn"
-		}
-	}
 
 }
 
@@ -272,13 +262,19 @@ func (s *myWindow) setMenuBar() {
 		s.showMsg(T("About"), T("Copy Right: Fu Huizhong <fuhuizn@163.com>\nSecurity Diary ")+version+"\n"+T("Crypto with AES256")+"\nHomepage: https://github.com/rocket049/secret-diary")
 	})
 
-	if runtime.GOOS != "windows" {
-		add2menu := menu.AddAction(T("Add To Menu"))
-		add2menu.ConnectTriggered(func(b bool) {
-			addToMenu()
-			s.showMsg(T("Add To Menu"), T("You can start this program from 'Start'->'Office'"))
-		})
+	itemName := "Add To Menu"
+	if runtime.GOOS == "windows" {
+		itemName = "Create Desktop Shortcut"
 	}
+
+	add2menu := menu.AddAction(T(itemName))
+	add2menu.ConnectTriggered(func(b bool) {
+		makeShortcut(true)
+		if runtime.GOOS == "linux" {
+			s.showMsg(T("Add To Menu"), T("You can start this program from 'Start'->'Office'"))
+		}
+
+	})
 
 	bak := menu.AddAction(T("Backup & Delete"))
 	bak.ConnectTriggered(func(b bool) {
@@ -592,12 +588,7 @@ func (s *myWindow) Create(app *widgets.QApplication) {
 	once := sync.Once{}
 	s.window.ConnectShowEvent(func(e *gui.QShowEvent) {
 		once.Do(func() {
-			windowsShortcut()
-			err := appimageLauncher(false)
-			if err != nil {
-				log.Println(err)
-				makeLauncher("Secret-Diary", "secret-diary", "Sd.png", false)
-			}
+			go makeShortcut(false)
 			s.login()
 		})
 	})

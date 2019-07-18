@@ -420,3 +420,6 @@ msgstr "段前间距"
 
 msgid "Format Brush"
 msgstr "格式刷"
+
+msgid "Create Desktop Shortcut"
+msgstr "创建桌面快捷方式"

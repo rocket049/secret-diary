@@ -4,17 +4,11 @@ import (
 	"bufio"
 	"bytes"
 	"errors"
-	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
-	"runtime"
 	"text/template"
-
-	"github.com/skratchdot/open-golang/open"
-	"golang.org/x/text/encoding/simplifiedchinese"
 )
 
 func copyFile(src, dst string) error {
@@ -154,44 +148,9 @@ func appimageLauncher(force bool) error {
 	return nil
 }
 
-func addToMenu() {
-	err := appimageLauncher(true)
+func makeShortcut(force bool) {
+	err := appimageLauncher(force)
 	if err != nil {
-		makeLauncher("Secret-Diary", "secret-diary", "Sd.png", true)
+		makeLauncher("Secret-Diary", "secret-diary", "Sd.png", force)
 	}
-}
-
-func windowsShortcut() error {
-	if runtime.GOOS != "windows" {
-		return errors.New("Not windows")
-	}
-	exe1, _ := os.Executable()
-	appdir := filepath.Dir(exe1)
-	appname := filepath.Join(appdir, "secret-diary.exe")
-	script := filepath.Join(appdir, "shortcut.vbs")
-	bat := filepath.Join(appdir, "shortcut.bat")
-	_, err := os.Lstat(bat)
-	if err == nil {
-		return err
-	}
-
-	writeBat(bat, "wscript", script, fmt.Sprintf(`/target:"%s"`, appname), "\r\nexit\r\n")
-
-	open.Start(bat)
-
-	return nil
-}
-
-func writeBat(bat string, msgs ...interface{}) {
-	var buf = []byte(fmt.Sprintln(msgs...))
-	var err error = nil
-	if ctype == "cn" {
-		enc := simplifiedchinese.GB18030.NewEncoder()
-		buf, err = enc.Bytes(buf)
-	}
-
-	if err == nil {
-		ioutil.WriteFile(bat, buf, 0644)
-	}
-
 }
