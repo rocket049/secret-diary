@@ -100,6 +100,7 @@ func appimageLauncher(force bool) error {
 	}
 
 	home, _ := os.UserHomeDir()
+	os.MkdirAll(filepath.Join(home, ".local", "share", "applications"), os.ModePerm)
 
 	src := filepath.Join(appdir, desktop)
 	dst := filepath.Join(home, ".local", "share", "applications", desktop)
