@@ -23,7 +23,7 @@ import (
 	"github.com/therecipe/qt/widgets"
 )
 
-const version = "1.1.18"
+const version = "1.1.19"
 
 func init() {
 	exe1, _ := os.Executable()
@@ -946,7 +946,7 @@ func (s *myWindow) popupOnMonth(item *gui.QStandardItem, point *core.QPoint) {
 func (s *myWindow) diaryPopup(idx *core.QModelIndex, e *gui.QMouseEvent) {
 	//fmt.Println("popup")
 	diary := s.model.ItemFromIndex(s.tree.CurrentIndex())
-	if diary.AccessibleDescription() != "0" {
+	if diary.AccessibleDescription() == "1" {
 		s.popupOnMonth(diary, e.GlobalPos())
 		return
 	}
