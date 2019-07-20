@@ -946,11 +946,15 @@ func (s *myWindow) popupOnMonth(item *gui.QStandardItem, point *core.QPoint) {
 func (s *myWindow) diaryPopup(idx *core.QModelIndex, e *gui.QMouseEvent) {
 	//fmt.Println("popup")
 	diary := s.model.ItemFromIndex(s.tree.CurrentIndex())
-	if diary.AccessibleDescription() == "1" {
+	switch diary.AccessibleDescription() {
+	case "0":
+		s.selectDiary(idx)
+	case "1":
 		s.popupOnMonth(diary, e.GlobalPos())
 		return
+	default:
+		return
 	}
-	s.selectDiary(idx)
 
 	menu := widgets.NewQMenu(s.tree)
 	delItem := menu.AddAction(T("Delete"))
