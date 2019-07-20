@@ -773,6 +773,18 @@ func (s *myWindow) addDiary(yearMonth, day, title string) {
 	s.tree.Expand(month.Index())
 }
 
+func (s *myWindow) addDiary2(id, day, title, mtime string, r, c int) {
+	item := s.model.Item(r, c)
+	diary := gui.NewQStandardItem2(fmt.Sprintf("%s-%s", day, title))
+	diary.SetEditable(false)
+	diary.SetAccessibleText(id)
+	diary.SetAccessibleDescription("0")
+	diary.SetToolTip(T("Last Modified:") + mtime)
+
+	item.AppendRow2(diary)
+
+}
+
 func (s *myWindow) addYearMonthsFromDb() {
 	s.setStatusBar(T("Loading Diary List..."))
 	s.editor.Document().Clear()
@@ -1046,7 +1058,7 @@ func (s *myWindow) onSelectItem(idx *core.QModelIndex) {
 			return
 		}
 		for i := 0; i < len(items); i++ {
-			s.bridge.AddDiary(strconv.Itoa(items[i].Id), items[i].Day, items[i].Title, items[i].MTime, r, c)
+			s.addDiary2(strconv.Itoa(items[i].Id), items[i].Day, items[i].Title, items[i].MTime, r, c)
 		}
 
 		s.bridge.SetMonthFlag(r, c)
