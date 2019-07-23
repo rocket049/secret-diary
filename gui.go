@@ -86,9 +86,9 @@ type myWindow struct {
 	user                string
 	key                 []byte
 	db                  *myDb
-	bridge              *QmlBridge
-	document            qtextFormat
-	format              formatData
+
+	document qtextFormat
+	format   formatData
 }
 
 func (s *myWindow) getNewId() (res int) {
@@ -793,13 +793,13 @@ func (s *myWindow) addYearMonthsFromDb() {
 	s.curDiary.Item = nil
 	s.curDiary.Id = 0
 
-	s.bridge = NewQmlBridge(s.window)
+	bridge := NewQmlBridge(s.window)
 	var wg sync.WaitGroup
-	s.bridge.ConnectAddYearMonth(func(ym string) {
+	bridge.ConnectAddYearMonth(func(ym string) {
 		s.addYearMonth(ym)
 		wg.Done()
 	})
-	s.bridge.ConnectAddDiary(func(id, day, title, mtime string, r, c int) {
+	bridge.ConnectAddDiary(func(id, day, title, mtime string, r, c int) {
 		item := s.model.Item(r, c)
 		diary := gui.NewQStandardItem2(fmt.Sprintf("%s-%s", day, title))
 		diary.SetEditable(false)
@@ -810,7 +810,7 @@ func (s *myWindow) addYearMonthsFromDb() {
 		item.AppendRow2(diary)
 		wg.Done()
 	})
-	s.bridge.ConnectSetMonthFlag(func(r, c int) {
+	bridge.ConnectSetMonthFlag(func(r, c int) {
 		item := s.model.TakeItem(r, c)
 		item.SetAccessibleText("1")
 		item.SetAccessibleDescription("1")
@@ -827,7 +827,7 @@ func (s *myWindow) addYearMonthsFromDb() {
 		}
 		for i := 0; i < len(yms); i++ {
 			wg.Add(1)
-			s.bridge.AddYearMonth(yms[i])
+			bridge.AddYearMonth(yms[i])
 		}
 		wg.Wait()
 		pidx := s.tree.RootIndex()
@@ -844,15 +844,26 @@ func (s *myWindow) addYearMonthsFromDb() {
 			}
 			for i := 0; i < len(items); i++ {
 				wg.Add(1)
-				s.bridge.AddDiary(strconv.Itoa(items[i].Id), items[i].Day, items[i].Title, items[i].MTime, r, c)
+				bridge.AddDiary(strconv.Itoa(items[i].Id), items[i].Day, items[i].Title, items[i].MTime, r, c)
 			}
 			wg.Wait()
-			s.bridge.SetMonthFlag(r, c)
+			bridge.SetMonthFlag(r, c)
 
 		}
 	}()
 
 	return
+}
+
+func (s *myWindow) setMonthFlag(r, c int) {
+	item := s.model.TakeItem(r, c)
+	item.SetAccessibleText("1")
+	item.SetAccessibleDescription("1")
+	s.model.SetItem(r, c, item)
+	s.tree.ResizeColumnToContents(0)
+	if r < 2 {
+		s.tree.Expand(item.Index())
+	}
 }
 
 func (s *myWindow) addYearMonth(yearMonth string) *gui.QStandardItem {
@@ -949,7 +960,7 @@ func (s *myWindow) popupOnMonth(item *gui.QStandardItem, point *core.QPoint) {
 			item.AppendRow2(diary)
 		}
 
-		s.bridge.SetMonthFlag(r, c)
+		s.setMonthFlag(r, c)
 		s.tree.Expand(idx)
 	})
 	menu.Popup(point, nil)
@@ -1061,7 +1072,7 @@ func (s *myWindow) onSelectItem(idx *core.QModelIndex) {
 			s.addDiary2(strconv.Itoa(items[i].Id), items[i].Day, items[i].Title, items[i].MTime, r, c)
 		}
 
-		s.bridge.SetMonthFlag(r, c)
+		s.setMonthFlag(r, c)
 		s.tree.Expand(idx)
 	}
 }
