@@ -23,7 +23,7 @@ import (
 	"github.com/therecipe/qt/widgets"
 )
 
-const version = "1.1.19"
+const version = "1.2.0"
 
 func init() {
 	exe1, _ := os.Executable()
@@ -335,35 +335,37 @@ func (s *myWindow) setToolBar() {
 		s.mergeFormatOnLineOrSelection(cfmt)
 	})
 
-	s.actionTextBold = bar.AddAction("B")
+	var icon *gui.QIcon
+
+	icon = gui.NewQIcon5(":/qml/icons/B.png")
+	s.actionTextBold = bar.AddAction2(icon, T("Bold"))
 	s.actionTextBold.SetCheckable(true)
-	s.actionTextBold.SetToolTip(T("Bold"))
 	s.actionTextBold.ConnectTriggered(func(checked bool) {
 		s.textBold()
 	})
 
-	s.actionTextItalic = bar.AddAction("I")
+	icon = gui.NewQIcon5(":/qml/icons/I.png")
+	s.actionTextItalic = bar.AddAction2(icon, T("Italic"))
 	s.actionTextItalic.SetCheckable(true)
-	s.actionTextItalic.SetToolTip(T("Italic"))
 	s.actionTextItalic.ConnectTriggered(func(checked bool) {
 		s.textItalic()
 	})
 
-	s.actionTextUnderline = bar.AddAction("U")
+	icon = gui.NewQIcon5(":/qml/icons/U.png")
+	s.actionTextUnderline = bar.AddAction2(icon, T("Underline"))
 	s.actionTextUnderline.SetCheckable(true)
-	s.actionTextUnderline.SetToolTip(T("Underline"))
 	s.actionTextUnderline.ConnectTriggered(func(checked bool) {
 		s.textUnderline()
 	})
 
-	s.actionStrikeOut = bar.AddAction("D")
+	icon = gui.NewQIcon5(":/qml/icons/S.png")
+	s.actionStrikeOut = bar.AddAction2(icon, T("StrikeOut"))
 	s.actionStrikeOut.SetCheckable(true)
-	s.actionStrikeOut.SetToolTip(T("StrikeOut"))
 	s.actionStrikeOut.ConnectTriggered(func(checked bool) {
 		s.textStrikeOut()
 	})
 
-	var icon = gui.NewQIcon5(":/qml/icons/fg.png")
+	icon = gui.NewQIcon5(":/qml/icons/fg.png")
 	actionTextColor := bar.AddAction2(icon, T("Text Color..."))
 	actionTextColor.ConnectTriggered(func(checked bool) {
 		s.textColor()
