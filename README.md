@@ -8,6 +8,13 @@
 兼容 `linux/windows`。
 支持语言：中文、英语
 
+### 百度下载
+链接: https://pan.baidu.com/s/14Ltsh1WiuKhHgMA7KgA-dw 提取码: stdc
+
+二维码下载：
+
+![二维码下载](baidu.jpeg)
+
 ### ChangeLog
 
 [At github](https://github.com/rocket049/secret-diary/releases)
