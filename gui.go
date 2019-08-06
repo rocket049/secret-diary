@@ -23,7 +23,7 @@ import (
 	"github.com/therecipe/qt/widgets"
 )
 
-const version = "1.2.0"
+const version = "1.2.1"
 
 func init() {
 	exe1, _ := os.Executable()
@@ -748,6 +748,8 @@ func (s *myWindow) addDiary(yearMonth, day, title string) {
 	}
 
 	month := s.addYearMonth(yearMonth)
+	month.SetAccessibleText("1")
+	month.SetAccessibleDescription("1")
 	diary := gui.NewQStandardItem2(fmt.Sprintf("%s-%s", day, title))
 	diary.SetEditable(false)
 	diary.SetAccessibleText("")
