@@ -1761,7 +1761,7 @@ func (s *myWindow) importEncryptedDiary() {
 }
 
 func (s *myWindow) exportAsPdf() {
-	defaultName := s.curDiary.Item.Text() + ".pdf"
+	defaultName := strings.TrimSpace(s.editor.Document().FirstBlock().Text()) + ".pdf"
 	filename := widgets.QFileDialog_GetSaveFileName(s.window, T("Export To..."), defaultName, "PDF (*.pdf)", "Encrypted Diary (*.pdf)", 0)
 	if !strings.HasSuffix(strings.ToLower(filename), ".pdf") {
 		filename = filename + ".pdf"
