@@ -23,7 +23,7 @@ import (
 	"github.com/therecipe/qt/widgets"
 )
 
-const version = "1.2.1"
+const version = "1.2.2"
 
 func init() {
 	exe1, _ := os.Executable()
@@ -1761,7 +1761,8 @@ func (s *myWindow) importEncryptedDiary() {
 }
 
 func (s *myWindow) exportAsPdf() {
-	filename := widgets.QFileDialog_GetSaveFileName(s.window, T("Export To..."), "out.pdf", "PDF (*.pdf)", "Encrypted Diary (*.pdf)", 0)
+	defaultName := s.curDiary.Item.Text() + ".pdf"
+	filename := widgets.QFileDialog_GetSaveFileName(s.window, T("Export To..."), defaultName, "PDF (*.pdf)", "Encrypted Diary (*.pdf)", 0)
 	if !strings.HasSuffix(strings.ToLower(filename), ".pdf") {
 		filename = filename + ".pdf"
 	}
