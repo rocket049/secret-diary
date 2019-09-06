@@ -123,6 +123,11 @@ func (s *myWindow) importFromZip(filename string, pwd string) error {
 		return err
 	}
 	//import every file from zip
+	id := s.db.NextId()
+	tx, err := s.db.BeginTx()
+	if err != nil {
+		return err
+	}
 	for _, zf := range zipFile.File {
 		if zf.Name == "diary.db" {
 			break
@@ -142,12 +147,13 @@ func (s *myWindow) importFromZip(filename string, pwd string) error {
 		}
 
 		//save diary
-		id := s.db.NextId()
 		datName := fmt.Sprintf("%d.dat", id)
 		encodeToFile(data, datName, s.key)
-		s.db.AddDiary2(id, record.Cdate, record.Title, datName, record.Category)
+		s.db.AddDiaryTx(tx, id, record.Cdate, record.Title, datName, record.Category)
+		s.setStatusBar(datName)
+		id++
 	}
-	return nil
+	return tx.Commit()
 }
 
 func dbGetRealKey(db *sql.DB, pwd string) ([]byte, error) {

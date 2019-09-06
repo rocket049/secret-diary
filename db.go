@@ -173,6 +173,16 @@ func (s *myDb) AddDiary2(id int, cdate, title, filename string, category int) er
 	return nil
 }
 
+func (s *myDb) BeginTx() (*sql.Tx, error) {
+	return s.db.Begin()
+}
+
+func (s *myDb) AddDiaryTx(tx *sql.Tx, id int, cdate, title, filename string, category int) error {
+	_, err := tx.Exec("insert into diaries(id,cdate,title,filename,mtime,category) values(?,?,?,?,?,?);",
+		id, cdate, title, filename, time.Now().Format("2006-01-02 15:04:05"), category)
+	return err
+}
+
 func (s *myDb) UpdateDiaryTitle(id int, title string) error {
 	res, err := s.db.Exec("update diaries set title=?,mtime=? where id=?", title, time.Now().Format("2006-01-02 15:04:05"), id)
 	if err != nil {

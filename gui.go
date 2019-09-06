@@ -23,7 +23,7 @@ import (
 	"github.com/therecipe/qt/widgets"
 )
 
-const version = "1.2.2"
+const version = "1.2.3"
 
 func init() {
 	exe1, _ := os.Executable()
@@ -131,6 +131,8 @@ func (s *myWindow) setMenuBar() {
 		err := zipData(fromDir, toFile)
 		if err != nil {
 			widgets.QMessageBox_About(s.window, T("Error"), err.Error())
+		} else {
+			widgets.QMessageBox_About(s.window, T("Complete"), T("Complete"))
 		}
 	})
 
@@ -150,6 +152,8 @@ func (s *myWindow) setMenuBar() {
 		err := s.importFromZip(filename, pwd)
 		if err != nil {
 			widgets.QMessageBox_About(s.window, T("Error"), err.Error())
+		} else {
+			widgets.QMessageBox_About(s.window, T("Complete"), T("Complete"))
 		}
 
 		s.clearModel()
