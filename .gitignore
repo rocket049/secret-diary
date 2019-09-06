@@ -2,7 +2,6 @@ secret-diary
 /deploy
 moc*
 rcc*
-/testdata
 messages.log
 linux_launcher
 setup
