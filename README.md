@@ -11,6 +11,9 @@
 ### 百度下载
 链接: https://pan.baidu.com/s/14Ltsh1WiuKhHgMA7KgA-dw 提取码: stdc
 
+### ZOL下载（win32版）
+[ZOL软件下载](http://xiazai.zol.com.cn/detail/48/472109.shtml)
+
 二维码下载：
 
 ![二维码下载](baidu.jpeg)
