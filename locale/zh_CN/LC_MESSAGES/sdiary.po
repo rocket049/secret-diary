@@ -423,3 +423,6 @@ msgstr "格式刷"
 
 msgid "Create Desktop Shortcut"
 msgstr "创建桌面快捷方式"
+
+msgid "Export Odt..."
+msgstr "导出为Odt格式..."

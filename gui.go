@@ -23,7 +23,7 @@ import (
 	"github.com/therecipe/qt/widgets"
 )
 
-const version = "1.2.3"
+const version = "1.2.4"
 
 func init() {
 	exe1, _ := os.Executable()
@@ -66,6 +66,7 @@ type myWindow struct {
 	actionStrikeOut     *widgets.QAction
 	exportEnc           *widgets.QAction
 	exportPdf           *widgets.QAction
+	exportOdt           *widgets.QAction
 	importEnc           *widgets.QAction
 	paste               *widgets.QAction
 	search              *widgets.QAction
@@ -112,6 +113,12 @@ func (s *myWindow) setMenuBar() {
 	s.exportPdf.SetDisabled(true)
 	s.exportPdf.ConnectTriggered(func(b bool) {
 		s.exportAsPdf()
+	})
+
+	s.exportOdt = menu.AddAction(T("Export Odt..."))
+	s.exportOdt.SetDisabled(true)
+	s.exportOdt.ConnectTriggered(func(b bool) {
+		s.exportAsOdt()
 	})
 
 	s.importEnc = menu.AddAction(T("Import Encrypted Diary"))
@@ -774,6 +781,7 @@ func (s *myWindow) addDiary(yearMonth, day, title string) {
 	s.editor.SetReadOnly(false)
 	s.exportEnc.SetEnabled(true)
 	s.exportPdf.SetEnabled(true)
+	s.exportOdt.SetEnabled(true)
 
 	s.setTitle(title)
 	s.clearAttachs()
@@ -937,6 +945,7 @@ func (s *myWindow) selectDiary(idx *core.QModelIndex) {
 	s.editor.SetReadOnly(false)
 	s.exportEnc.SetEnabled(true)
 	s.exportPdf.SetEnabled(true)
+	s.exportOdt.SetEnabled(true)
 
 }
 
@@ -1047,6 +1056,7 @@ func (s *myWindow) diaryPopup(idx *core.QModelIndex, e *gui.QMouseEvent) {
 	menu.QWidget.AddAction(s.exportEnc)
 
 	menu.QWidget.AddAction(s.exportPdf)
+	menu.QWidget.AddAction(s.exportOdt)
 
 	menu.Popup(e.GlobalPos(), nil)
 }
@@ -1779,6 +1789,23 @@ func (s *myWindow) exportAsPdf() {
 	printer.SetOutputFileName(fileName)
 	s.editor.Document().Print(printer)
 	s.setStatusBar(fmt.Sprintf("Exported %v", core.QDir_ToNativeSeparators(fileName)))
+}
+
+func (s *myWindow) exportAsOdt() {
+	defaultName := strings.TrimSpace(s.editor.Document().FirstBlock().Text()) + ".odt"
+	filename := widgets.QFileDialog_GetSaveFileName(s.window, T("Export To..."), defaultName, "OpenDocument (*.odt)", "OpenDocument (*.odt)", 0)
+	if !strings.HasSuffix(strings.ToLower(filename), ".odt") {
+		filename = filename + ".odt"
+	}
+	var (
+		writer  = gui.NewQTextDocumentWriter3(filename, core.NewQByteArray())
+		success = writer.Write(s.editor.Document())
+	)
+	if success {
+		s.setStatusBar(fmt.Sprintf("Exported %v", core.QDir_ToNativeSeparators(filename)))
+	} else {
+		s.setStatusBar("Exported Fail.")
+	}
 }
 
 func (s *myWindow) showMsg(title, msg string) {
