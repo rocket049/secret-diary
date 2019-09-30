@@ -564,6 +564,7 @@ func (s *myWindow) OpenNewWindow(parent *myWindow, id int) {
 
 	s.exportEnc.SetEnabled(true)
 	s.exportPdf.SetEnabled(true)
+	s.exportOdt.SetEnabled(true)
 	s.importEnc.SetDisabled(true)
 	s.newDiary.SetDisabled(true)
 	s.renDiary.SetDisabled(true)
