@@ -1071,15 +1071,7 @@ func (s *myWindow) LockEditor() {
 
 func (s *myWindow) onSelectItem(idx *core.QModelIndex) {
 	item := s.model.ItemFromIndex(idx)
-	//fmt.Println("AD:", item.AccessibleDescription())
-	switch item.AccessibleDescription() {
-	case "0":
-		s.selectDiary(idx)
-	case "1":
-		s.LockEditor()
-		return
-
-	default:
+	loadChildren := func() {
 		items, err := s.db.GetListFromYearMonth(item.Text())
 		r, c := idx.Row(), idx.Column()
 		if err != nil {
@@ -1092,6 +1084,19 @@ func (s *myWindow) onSelectItem(idx *core.QModelIndex) {
 
 		s.setMonthFlag(r, c)
 		s.tree.Expand(idx)
+	}
+	//fmt.Println("AD:", item.AccessibleDescription())
+	switch item.AccessibleDescription() {
+	case "0":
+		s.selectDiary(idx)
+	case "1":
+		s.LockEditor()
+		if item.HasChildren() == false {
+			loadChildren()
+		}
+
+	default:
+		loadChildren()
 	}
 }
 
