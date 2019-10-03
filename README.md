@@ -8,6 +8,14 @@
 兼容 `linux/windows`。
 支持语言：中文、英语
 
+### 编译环境
+- go1.12
+- therecipe/qt + qt5.12
+
+**Incompatible qt5.13**
+
+最新的`therecipe/qt`使用了`qt5.13`，和本软件不兼容，必须改用`qt5.12`。
+
 ### 百度下载
 链接: https://pan.baidu.com/s/14Ltsh1WiuKhHgMA7KgA-dw 提取码: stdc
 
