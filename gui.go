@@ -42,6 +42,7 @@ type diaryPointer struct {
 	//Modified  bool
 }
 
+//T wrap gettext.T
 func T(v string) string {
 	return gettext.T(v)
 }
