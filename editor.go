@@ -118,7 +118,7 @@ func (s *myWindow) textStyle(styleIndex int) {
 	}
 }
 
-// addIndent n=1 or n=-1
+// addIndent 增加缩进量，n=1（增加1） or n=-1（减少1）
 func (s *myWindow) addIndent(n int) {
 	cursor := s.editor.TextCursor()
 	cursor.BeginEditBlock()
