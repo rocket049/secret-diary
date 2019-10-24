@@ -42,6 +42,7 @@ type diaryPointer struct {
 	//Modified  bool
 }
 
+//T wrap gettext.T
 func T(v string) string {
 	return gettext.T(v)
 }
@@ -1011,6 +1012,10 @@ func (s *myWindow) diaryPopup(idx *core.QModelIndex, e *gui.QMouseEvent) {
 				s.db.RemoveDiary(id)
 			}
 			s.curDiary.Item = nil
+			s.curDiary.Id = 0
+			s.curDiary.Day = ""
+			s.curDiary.YearMonth = ""
+
 			//curDiary.Modified = false
 			p := diary.Parent()
 			p.RemoveRow(diary.Row())
