@@ -23,7 +23,7 @@ import (
 	"github.com/therecipe/qt/widgets"
 )
 
-const version = "1.2.5"
+const version = "1.2.6"
 
 func init() {
 	exe1, _ := os.Executable()
@@ -40,6 +40,13 @@ type diaryPointer struct {
 	Day       string
 	YearMonth string
 	//Modified  bool
+}
+
+func (s *diaryPointer) zero() {
+	s.Item = nil
+	s.Id = 0
+	s.Day = ""
+	s.YearMonth = ""
 }
 
 //T wrap gettext.T
@@ -84,7 +91,7 @@ type myWindow struct {
 	category            int
 	categoryName        string
 	categoryItem        *widgets.QAction
-	curDiary            diaryPointer
+	curDiary            *diaryPointer
 	user                string
 	key                 []byte
 	db                  *myDb
@@ -567,10 +574,10 @@ func (s *myWindow) Create(app *widgets.QApplication) {
 	charW := s.charWidth()
 
 	s.window = widgets.NewQMainWindow(nil, core.Qt__Window)
-
 	s.window.SetWindowTitle(T("UserName"))
-
 	s.window.SetWindowIcon(gui.NewQIcon5(":/qml/icons/Sd.png"))
+
+	s.curDiary = new(diaryPointer)
 
 	spliter := widgets.NewQSplitter2(core.Qt__Horizontal, s.window)
 
@@ -807,8 +814,7 @@ func (s *myWindow) addYearMonthsFromDb() {
 	s.editor.Document().Clear()
 	s.editor.Document().SetModified(false)
 	s.editor.SetReadOnly(true)
-	s.curDiary.Item = nil
-	s.curDiary.Id = 0
+	s.curDiary.zero()
 
 	bridge := NewQmlBridge(s.window)
 	var wg sync.WaitGroup
@@ -1011,10 +1017,7 @@ func (s *myWindow) diaryPopup(idx *core.QModelIndex, e *gui.QMouseEvent) {
 			if len(id) > 0 {
 				s.db.RemoveDiary(id)
 			}
-			s.curDiary.Item = nil
-			s.curDiary.Id = 0
-			s.curDiary.Day = ""
-			s.curDiary.YearMonth = ""
+			s.curDiary.zero()
 
 			//curDiary.Modified = false
 			p := diary.Parent()
@@ -1068,7 +1071,7 @@ func (s *myWindow) diaryPopup(idx *core.QModelIndex, e *gui.QMouseEvent) {
 
 func (s *myWindow) LockEditor() {
 	s.saveCurDiary()
-	s.curDiary.Item = nil
+	s.curDiary.zero()
 	s.editor.Clear()
 	s.editor.SetReadOnly(true)
 	s.editor.Document().SetModified(false)
@@ -1088,7 +1091,7 @@ func (s *myWindow) onSelectItem(idx *core.QModelIndex) {
 		}
 
 		s.setMonthFlag(r, c)
-		s.tree.Expand(idx)
+		//s.tree.Expand(idx)
 	}
 	//fmt.Println("AD:", item.AccessibleDescription())
 	switch item.AccessibleDescription() {
@@ -1098,11 +1101,25 @@ func (s *myWindow) onSelectItem(idx *core.QModelIndex) {
 		s.LockEditor()
 		if item.HasChildren() == false {
 			loadChildren()
+		} else {
+			s.tree.ClearSelection()
 		}
 
 	default:
 		loadChildren()
 	}
+}
+
+func (s *myWindow) CollapseOrExpand(idx *core.QModelIndex) {
+	item := s.model.ItemFromIndex(idx)
+	if item.AccessibleDescription() == "1" {
+		if s.tree.IsExpanded(idx) {
+			s.tree.Collapse(idx)
+		} else {
+			s.tree.Expand(idx)
+		}
+	}
+
 }
 
 func (s *myWindow) setTreeFuncs() {
@@ -1117,12 +1134,15 @@ func (s *myWindow) setTreeFuncs() {
 		s.tree.SetCurrentIndex(idx)
 		switch e.Button() {
 		case core.Qt__LeftButton:
-			return
+			s.CollapseOrExpand(idx)
 		case core.Qt__RightButton:
 			s.diaryPopup(idx, e)
 		}
 
 	})
+
+	s.tree.DisconnectExpand()
+	s.tree.DisconnectCollapse()
 
 	s.tree.ConnectSelectionChanged(func(selected *core.QItemSelection, deselected *core.QItemSelection) {
 		idxes := selected.Indexes()
