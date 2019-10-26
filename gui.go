@@ -1126,6 +1126,10 @@ func (s *myWindow) setTreeFuncs() {
 
 	s.tree.SetSelectionMode(widgets.QAbstractItemView__SingleSelection)
 
+	s.tree.DisconnectMousePressEvent()
+	s.tree.DisconnectMouseDoubleClickEvent()
+	s.tree.DisconnectMouseReleaseEvent()
+
 	s.tree.ConnectMouseReleaseEvent(func(e *gui.QMouseEvent) {
 		idx := s.tree.IndexAt(e.Pos())
 		if !idx.IsValid() {
