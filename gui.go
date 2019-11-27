@@ -25,7 +25,7 @@ import (
 	"github.com/therecipe/qt/widgets"
 )
 
-const version = "1.2.7"
+const version = "1.2.8"
 
 func init() {
 	exe1, _ := os.Executable()

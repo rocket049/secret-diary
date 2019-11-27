@@ -535,6 +535,7 @@ func (s *myWindow) charWidth() int {
 
 func (s *myWindow) OpenNewWindow(parent *myWindow, id int) {
 	s.key = parent.key
+	s.curDiary = new(diaryPointer)
 	s.curDiary.Id = id
 	s.db = parent.db
 
