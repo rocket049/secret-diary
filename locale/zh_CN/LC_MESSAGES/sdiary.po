@@ -426,3 +426,18 @@ msgstr "创建桌面快捷方式"
 
 msgid "Export Odt..."
 msgstr "导出为Odt格式..."
+
+msgid "Update"
+msgstr "检查更新"
+
+msgid "This is the Newest Version!"
+msgstr "这是最新版本！"
+
+msgid "Current:"
+msgstr "当前版本："
+
+msgid "Newest:"
+msgstr "最新版本："
+
+msgid "I will open the page on github website after you click button 'OK'!"
+msgstr "当你点击'OK'按钮后，我将打开位于github网站上的下载页面！"

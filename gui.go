@@ -14,6 +14,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/skratchdot/open-golang/open"
+
 	"github.com/therecipe/qt/gui"
 	"github.com/therecipe/qt/printsupport"
 
@@ -23,7 +25,7 @@ import (
 	"github.com/therecipe/qt/widgets"
 )
 
-const version = "1.2.6"
+const version = "1.2.8"
 
 func init() {
 	exe1, _ := os.Executable()
@@ -279,6 +281,17 @@ func (s *myWindow) setMenuBar() {
 	about := menu.AddAction(T("About"))
 	about.ConnectTriggered(func(b bool) {
 		s.showMsg(T("About"), T("Copy Right: Fu Huizhong <fuhuizn@163.com>\nSecurity Diary ")+version+"\n"+T("Crypto with AES256")+"\nHomepage: https://github.com/rocket049/secret-diary")
+	})
+
+	update1 := menu.AddAction(T("Update"))
+	update1.ConnectTriggered(func(b bool) {
+		v, newest := versionCheck()
+		if newest == true {
+			s.showMsg(T("Update"), T("This is the Newest Version!"))
+		} else {
+			s.showMsg(T("Update"), T("Current:")+version+"\n"+T("Newest:")+v+"\n"+T("I will open the page on github website after you click button 'OK'!"))
+			open.Start("https://github.com/rocket049/secret-diary/releases")
+		}
 	})
 
 	itemName := "Add To Menu"
@@ -1125,6 +1138,10 @@ func (s *myWindow) CollapseOrExpand(idx *core.QModelIndex) {
 func (s *myWindow) setTreeFuncs() {
 
 	s.tree.SetSelectionMode(widgets.QAbstractItemView__SingleSelection)
+
+	s.tree.DisconnectMousePressEvent()
+	s.tree.DisconnectMouseDoubleClickEvent()
+	s.tree.DisconnectMouseReleaseEvent()
 
 	s.tree.ConnectMouseReleaseEvent(func(e *gui.QMouseEvent) {
 		idx := s.tree.IndexAt(e.Pos())
