@@ -25,7 +25,7 @@ import (
 	"github.com/therecipe/qt/widgets"
 )
 
-const version = "1.2.8"
+const version = "1.2.9"
 
 func init() {
 	exe1, _ := os.Executable()
@@ -88,7 +88,7 @@ type myWindow struct {
 	saveDiary           *widgets.QAction
 	renDiary            *widgets.QAction
 	modifyPwd           *widgets.QAction
-	fb                  *widgets.QAction  //格式刷
+	fb                  *widgets.QAction //格式刷
 	categories          *widgets.QMenu
 	category            int
 	categoryName        string

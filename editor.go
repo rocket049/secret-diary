@@ -545,8 +545,6 @@ func (s *myWindow) OpenNewWindow(parent *myWindow, id int) {
 	s.window.SetMinimumSize2(800, 600)
 	s.window.SetWindowIcon(gui.NewQIcon5(":/qml/icons/Sd.png"))
 
-	s.curDiary = new(diaryPointer)
-
 	grid := widgets.NewQGridLayout2()
 
 	frame := widgets.NewQFrame(s.window, core.Qt__Widget)
