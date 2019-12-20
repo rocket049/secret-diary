@@ -118,7 +118,7 @@ func (s *myWindow) textStyle(styleIndex int) {
 	}
 }
 
-// addIndent n=1 or n=-1
+// addIndent 增加缩进量，n=1（增加1） or n=-1（减少1）
 func (s *myWindow) addIndent(n int) {
 	cursor := s.editor.TextCursor()
 	cursor.BeginEditBlock()
@@ -544,8 +544,6 @@ func (s *myWindow) OpenNewWindow(parent *myWindow, id int) {
 	s.window.SetWindowTitle(parent.user)
 	s.window.SetMinimumSize2(800, 600)
 	s.window.SetWindowIcon(gui.NewQIcon5(":/qml/icons/Sd.png"))
-
-	s.curDiary = new(diaryPointer)
 
 	grid := widgets.NewQGridLayout2()
 

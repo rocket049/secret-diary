@@ -99,7 +99,7 @@ type myWindow struct {
 	saveDiary           *widgets.QAction
 	renDiary            *widgets.QAction
 	modifyPwd           *widgets.QAction
-	fb                  *widgets.QAction
+	fb                  *widgets.QAction //格式刷
 	categories          *widgets.QMenu
 	category            int
 	categoryName        string
