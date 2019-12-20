@@ -42,7 +42,7 @@ func init() {
 	if err != nil {
 		datDir = path.Join(home1, ".sdiary")
 	} else {
-		datDir = string(cfg)
+		datDir = string(cfgBytes)
 	}
 }
 
@@ -1382,7 +1382,6 @@ func (s *myWindow) clearModelFind() {
 }
 
 func (s *myWindow) lastUser() string {
-	home, _ := os.UserHomeDir()
 	v, err := ioutil.ReadFile(path.Join(datDir, "user.txt"))
 	if err != nil {
 		return ""
@@ -1391,7 +1390,6 @@ func (s *myWindow) lastUser() string {
 }
 
 func (s *myWindow) saveLastUser(name string) {
-	home, _ := os.UserHomeDir()
 	path1 := path.Join(datDir, "user.txt")
 	ioutil.WriteFile(path1, []byte(name), 0644)
 }
@@ -1527,7 +1525,6 @@ func (s *myWindow) updatePwd() {
 }
 
 func (s *myWindow) getUsers() []string {
-	home, _ := os.UserHomeDir()
 	dir := datDir
 	hdir, err := os.Open(dir)
 	if err != nil {
