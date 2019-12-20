@@ -88,7 +88,7 @@ type myWindow struct {
 	exportPdf           *widgets.QAction
 	exportOdt           *widgets.QAction
 	importEnc           *widgets.QAction
-	changeStorge        *widgets.QAction
+	changeStorage       *widgets.QAction
 	paste               *widgets.QAction
 	search              *widgets.QAction
 	replace             *widgets.QAction
@@ -189,13 +189,15 @@ func (s *myWindow) setMenuBar() {
 		s.addYearMonthsFromDb()
 	})
 
-	s.changeStorge = menu.AddAction(T("Change Storge Dir"))
-	s.changeStorge.ConnectTriggered(func(b bool) {
-		dir1 := widgets.QFileDialog_GetExistingDirectory(s.window, T("Select Storge Directory"), datDir, 0)
+	s.changeStorage = menu.AddAction(T("Change Storage Dir"))
+	s.changeStorage.ConnectTriggered(func(b bool) {
+		dir1 := widgets.QFileDialog_GetExistingDirectory(s.window, T("Select Storage Directory"), datDir, 0)
 		if len(dir1) > 0 {
 			home1, _ := os.UserHomeDir()
 			cfg := path.Join(home1, ".sdiary", "datapath.txt")
 			ioutil.WriteFile(cfg, []byte(dir1), 0644)
+			widgets.QMessageBox_Information(s.window, T("Quit program"), T("The program will terminate now."), widgets.QMessageBox__Ok, widgets.QMessageBox__Ok)
+			s.app.Quit()
 		}
 	})
 
@@ -331,7 +333,7 @@ func (s *myWindow) setMenuBar() {
 
 	bak := menu.AddAction(T("Backup & Delete"))
 	bak.ConnectTriggered(func(b bool) {
-		s.showMsg(T("Backup & Delete"), T("Your DATA storge path is '")+dataDir+"'\n"+T("You can backup and delete the directory yourself."))
+		s.showMsg(T("Backup & Delete"), T("Your DATA Storage path is '")+dataDir+"'\n"+T("You can backup and delete the directory yourself."))
 	})
 
 	pwd := menu.AddAction(T("Password"))
