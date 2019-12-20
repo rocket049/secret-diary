@@ -20,7 +20,7 @@ type myDb struct {
 
 func createUserDb(name string, pwd string) error {
 	home1, _ := os.UserHomeDir()
-	dataDir = path.Join(home1, ".sdiary", name)
+	dataDir = path.Join(datDir, name)
 	os.MkdirAll(dataDir, os.ModePerm)
 	userDb := path.Join(dataDir, "diary.db")
 	if _, err := os.Stat(userDb); err == nil {
@@ -60,7 +60,7 @@ func createUserDb(name string, pwd string) error {
 
 func getMyDb(name string) (*myDb, error) {
 	home1, _ := os.UserHomeDir()
-	dataDir = path.Join(home1, ".sdiary", name)
+	dataDir = path.Join(datDir, name)
 	os.MkdirAll(dataDir, os.ModePerm)
 
 	userDb := path.Join(dataDir, "diary.db")

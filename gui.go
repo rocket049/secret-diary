@@ -25,7 +25,9 @@ import (
 	"github.com/therecipe/qt/widgets"
 )
 
-const version = "1.2.8"
+const version = "1.2.10"
+
+var datDir string
 
 func init() {
 	exe1, _ := os.Executable()
@@ -34,6 +36,14 @@ func init() {
 	gettext.BindTextdomain("sdiary", locale1, nil)
 	gettext.Textdomain("sdiary")
 
+	home1, _ := os.UserHomeDir()
+	cfg := path.Join(home1, ".sdiary", "datapath.txt")
+	cfgBytes, err := ioutil.ReadFile(cfg)
+	if err != nil {
+		datDir = path.Join(home1, ".sdiary")
+	} else {
+		datDir = string(cfg)
+	}
 }
 
 type diaryPointer struct {
@@ -78,6 +88,7 @@ type myWindow struct {
 	exportPdf           *widgets.QAction
 	exportOdt           *widgets.QAction
 	importEnc           *widgets.QAction
+	changeStorge        *widgets.QAction
 	paste               *widgets.QAction
 	search              *widgets.QAction
 	replace             *widgets.QAction
@@ -143,7 +154,7 @@ func (s *myWindow) setMenuBar() {
 		if len(dir) == 0 {
 			return
 		}
-		fromDir := filepath.Join(home, ".sdiary", s.user)
+		fromDir := filepath.Join(datDir, s.user)
 		toFile := filepath.Join(home, s.user+".bak")
 		err := zipData(fromDir, toFile)
 		if err != nil {
@@ -176,6 +187,16 @@ func (s *myWindow) setMenuBar() {
 		s.clearModel()
 
 		s.addYearMonthsFromDb()
+	})
+
+	s.changeStorge = menu.AddAction(T("Change Storge Dir"))
+	s.changeStorge.ConnectTriggered(func(b bool) {
+		dir1 := widgets.QFileDialog_GetExistingDirectory(s.window, T("Select Storge Directory"), datDir, 0)
+		if len(dir1) > 0 {
+			home1, _ := os.UserHomeDir()
+			cfg := path.Join(home1, ".sdiary", "datapath.txt")
+			ioutil.WriteFile(cfg, []byte(dir1), 0644)
+		}
 	})
 
 	menu = menubar.AddMenu2(T("Edit"))
@@ -1362,7 +1383,7 @@ func (s *myWindow) clearModelFind() {
 
 func (s *myWindow) lastUser() string {
 	home, _ := os.UserHomeDir()
-	v, err := ioutil.ReadFile(path.Join(home, ".sdiary", "user.txt"))
+	v, err := ioutil.ReadFile(path.Join(datDir, "user.txt"))
 	if err != nil {
 		return ""
 	}
@@ -1371,7 +1392,7 @@ func (s *myWindow) lastUser() string {
 
 func (s *myWindow) saveLastUser(name string) {
 	home, _ := os.UserHomeDir()
-	path1 := path.Join(home, ".sdiary", "user.txt")
+	path1 := path.Join(datDir, "user.txt")
 	ioutil.WriteFile(path1, []byte(name), 0644)
 }
 
@@ -1507,7 +1528,7 @@ func (s *myWindow) updatePwd() {
 
 func (s *myWindow) getUsers() []string {
 	home, _ := os.UserHomeDir()
-	dir := filepath.Join(home, ".sdiary")
+	dir := datDir
 	hdir, err := os.Open(dir)
 	if err != nil {
 		return []string{}
