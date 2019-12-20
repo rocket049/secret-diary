@@ -441,3 +441,9 @@ msgstr "最新版本："
 
 msgid "I will open the page on github website after you click button 'OK'!"
 msgstr "当你点击'OK'按钮后，我将打开位于github网站上的下载页面！"
+
+msgid "Change Storge Dir"
+msgstr "改变存储目录"
+
+msgid "Select Storge Directory"
+msgstr "选择存储目录"
