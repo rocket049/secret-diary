@@ -196,7 +196,9 @@ func (s *myWindow) setMenuBar() {
 			home1, _ := os.UserHomeDir()
 			cfg := path.Join(home1, ".sdiary", "datapath.txt")
 			ioutil.WriteFile(cfg, []byte(dir1), 0644)
-			widgets.QMessageBox_Information(s.window, T("Quit program"), T("The program will terminate now."), widgets.QMessageBox__Ok, widgets.QMessageBox__Ok)
+			widgets.QMessageBox_Information(s.window, T("Quit program"),
+				T("The program will terminate now.")+"\n"+T("How to move data?")+"\n"+T("Move the directories to the new directory from ")+datDir,
+				widgets.QMessageBox__Ok, widgets.QMessageBox__Ok)
 			s.app.Quit()
 		}
 	})

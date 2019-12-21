@@ -447,3 +447,15 @@ msgstr "改变存储目录"
 
 msgid "Select Storage Directory"
 msgstr "选择存储目录"
+
+msgid "Quit program"
+msgstr "即将退出程序"
+
+msgid "The program will terminate now."
+msgstr "本程序即将退出。"
+
+msgid "How to move data?"
+msgstr "如何转移你的数据？"
+
+msgid "Move the directories to the new directory from "
+msgstr "把该目录中的子目录移动到新的数据目录："
