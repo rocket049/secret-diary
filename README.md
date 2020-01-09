@@ -24,7 +24,7 @@
 
 二维码下载：
 
-![二维码下载](baidu.jpeg)
+![二维码下载](https://github.com/rocket049/secret-diary/raw/master/baidu.jpeg)
 
 ### ChangeLog
 
@@ -69,6 +69,6 @@
 ## 支持作者 Support Author
 全凭您的自愿！ Voluntary!
 
-![支付宝 alipay](./pay/alipay.jpg)
+![支付宝 alipay](https://github.com/rocket049/secret-diary/raw/master/pay/alipay.jpg)
 
-![微信支付 wxpay](./pay/wxpay.png)
+![微信支付 wxpay](https://github.com/rocket049/secret-diary/raw/master/pay/wxpay.png)
