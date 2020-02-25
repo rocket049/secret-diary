@@ -1309,6 +1309,45 @@ func (s *myWindow) setEditorFuncs() {
 		s.fb.SetChecked(false)
 	})
 
+	//var bfmt *gui.QTextBlockFormat
+	//var cfmt *gui.QTextCharFormat
+	onEnterOrReturn := func() {
+		cursor := s.editor.TextCursor()
+		cursor.Select(gui.QTextCursor__LineUnderCursor)
+		txt := cursor.SelectedText()
+		r1 := regexp.MustCompile("^(\t+).*$")
+		tabs := r1.FindStringSubmatch(txt)
+		if len(tabs) > 1 {
+			s.editor.InsertPlainTextDefault("\n" + tabs[1])
+		} else {
+			s.editor.InsertPlainTextDefault("\n")
+		}
+	}
+	s.editor.ConnectKeyPressEvent(func(e *gui.QKeyEvent) {
+		switch core.Qt__Key(e.Key()) {
+		case core.Qt__Key_Enter:
+			onEnterOrReturn()
+		case core.Qt__Key_Return:
+			onEnterOrReturn()
+		default:
+			s.editor.KeyPressEventDefault(e)
+		}
+	})
+
+	// s.editor.ConnectInsertPlainText(func(txt string) {
+	// 	if bfmt == nil || cfmt == nil {
+	// 		return
+	// 	}
+	// 	cursor := s.editor.TextCursor()
+	// 	if !cursor.HasSelection() {
+	// 		cursor.Select(gui.QTextCursor__LineUnderCursor)
+	// 		cursor.SetBlockFormat(bfmt)
+	// 		cursor.SetCharFormat(cfmt)
+	// 	}
+
+	// 	bfmt = nil
+	// 	cfmt = nil
+	// })
 }
 
 func (s *myWindow) OnTextChanged() {
