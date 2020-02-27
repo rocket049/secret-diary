@@ -731,7 +731,7 @@ func (s *myWindow) createEditor(charW int) widgets.QWidget_ITF {
 
 	width := charW * 30
 
-	s.editor.SetTabStopWidth(charW * 2)
+	s.editor.SetTabStopWidth(40)
 	s.editor.SetFixedWidth(width)
 
 	scrollarea.SetMinimumWidth(width + 40)

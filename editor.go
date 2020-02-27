@@ -529,7 +529,7 @@ func (s *myWindow) charWidth() int {
 	// }
 
 	// fm := gui.NewQFontMetrics(font)
-	// return fm.BoundingRect2("M").Height()
+	// return fm.BoundingRect2("宽W").Width()
 	return 24
 }
 
