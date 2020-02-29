@@ -460,7 +460,7 @@ func (s *myWindow) setToolBar() {
 	s.fb.ConnectTriggered(func(checked bool) {
 		cursor := s.editor.TextCursor()
 		if !cursor.HasSelection() {
-			cursor.Select(gui.QTextCursor__BlockUnderCursor)
+			cursor.Select(gui.QTextCursor__LineUnderCursor)
 		}
 		s.format.BF = cursor.BlockFormat()
 		s.format.CF = cursor.CharFormat()
@@ -1300,7 +1300,7 @@ func (s *myWindow) setEditorFuncs() {
 		}
 		cursor := s.editor.TextCursor()
 		if !cursor.HasSelection() {
-			cursor.Select(gui.QTextCursor__LineUnderCursor)
+			cursor.Select(gui.QTextCursor__BlockUnderCursor)
 		}
 		cursor.SetBlockFormat(s.format.BF)
 		cursor.SetCharFormat(s.format.CF)
@@ -1309,14 +1309,13 @@ func (s *myWindow) setEditorFuncs() {
 		s.fb.SetChecked(false)
 	})
 
-	//var bfmt *gui.QTextBlockFormat
-	//var cfmt *gui.QTextCharFormat
 	onEnterOrReturn := func() {
 		cursor := s.editor.TextCursor()
-		cursor.Select(gui.QTextCursor__LineUnderCursor)
+		cursor.Select(gui.QTextCursor__BlockUnderCursor)
+		//fmt.Printf("B:%#v\n", cursor.SelectedText())
 		txt := cursor.SelectedText()
 		r1 := regexp.MustCompile("^(\t+).*$")
-		tabs := r1.FindStringSubmatch(txt)
+		tabs := r1.FindStringSubmatch(strings.TrimLeft(txt, "\u2029"))
 		if len(tabs) > 1 {
 			s.editor.InsertPlainTextDefault("\n" + tabs[1])
 		} else {
