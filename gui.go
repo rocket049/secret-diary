@@ -460,7 +460,7 @@ func (s *myWindow) setToolBar() {
 	s.fb.ConnectTriggered(func(checked bool) {
 		cursor := s.editor.TextCursor()
 		if !cursor.HasSelection() {
-			cursor.Select(gui.QTextCursor__LineUnderCursor)
+			cursor.Select(gui.QTextCursor__BlockUnderCursor)
 		}
 		s.format.BF = cursor.BlockFormat()
 		s.format.CF = cursor.CharFormat()
@@ -686,10 +686,10 @@ func (s *myWindow) createLeftArea(charW int) widgets.QWidget_ITF {
 	search := widgets.NewQWidget(nil, core.Qt__Widget)
 	grid := widgets.NewQGridLayout(search)
 	keyword := widgets.NewQLineEdit(search)
-	grid.AddWidget(keyword, 0, 0, 0)
+	grid.AddWidget2(keyword, 0, 0, 0)
 
 	btn := widgets.NewQPushButton2(T("Search"), search)
-	grid.AddWidget(btn, 0, 1, 0)
+	grid.AddWidget2(btn, 0, 1, 0)
 	btn.ConnectClicked(func(b bool) {
 		s.searchFromDb(strings.TrimSpace(keyword.Text()))
 	})
@@ -743,12 +743,12 @@ func (s *myWindow) createEditor(charW int) widgets.QWidget_ITF {
 		scrollarea.ActivateWindow()
 	})
 
-	grid.AddWidget(s.editor, 0, 0, 0)
+	grid.AddWidget2(s.editor, 0, 0, 0)
 
 	comboBox := s.setupComboAttachs()
 	//grid.AddLayout(comboBox, 1, 0, 0)
 
-	grid.SetAlign(core.Qt__AlignHCenter)
+	//grid.SetAlign(core.Qt__AlignHCenter)
 	frame.SetLayout(grid)
 	scrollarea.SetWidget(frame)
 
@@ -1206,7 +1206,7 @@ func (s *myWindow) setTitle(v string) {
 
 	s.editor.SetFontPointSize(18)
 
-	s.editor.SetAlignment(core.Qt__AlignHCenter)
+	//s.editor.SetAlignment(core.Qt__AlignHCenter)
 
 	cursor := s.editor.TextCursor()
 	cursor.SetCharFormat(cfmt)
@@ -1220,7 +1220,7 @@ func (s *myWindow) setTitle(v string) {
 	afmt.SetFont2(s.app.Font())
 	afmt.SetFontPointSize(14)
 
-	s.editor.SetAlignment(core.Qt__AlignLeft | core.Qt__AlignAbsolute)
+	//s.editor.SetAlignment(core.Qt__AlignLeft | core.Qt__AlignAbsolute)
 
 	cursor.InsertText("\n\t")
 	s.mergeFormatOnLineOrSelection(afmt)
@@ -1455,15 +1455,15 @@ func (s *myWindow) rename() {
 	grid := widgets.NewQGridLayout(dlg)
 
 	name := widgets.NewQLabel2(T("New Name:"), dlg, core.Qt__Widget)
-	grid.AddWidget(name, 0, 0, 0)
+	grid.AddWidget2(name, 0, 0, 0)
 
 	nameInput := widgets.NewQLineEdit(dlg)
-	grid.AddWidget(nameInput, 0, 1, 0)
+	grid.AddWidget2(nameInput, 0, 1, 0)
 
 	okAct := widgets.NewQPushButton2(T("OK"), dlg)
-	grid.AddWidget(okAct, 1, 0, 0)
+	grid.AddWidget2(okAct, 1, 0, 0)
 	cancelAct := widgets.NewQPushButton2(T("Cancel"), dlg)
-	grid.AddWidget(cancelAct, 1, 1, 0)
+	grid.AddWidget2(cancelAct, 1, 1, 0)
 
 	okAct.ConnectClicked(func(checked bool) {
 		ret := widgets.QMessageBox_Question(dlg, T("Confirm"), T("Are you sure?"), widgets.QMessageBox__Yes|widgets.QMessageBox__Cancel, widgets.QMessageBox__Yes)
@@ -1504,35 +1504,35 @@ func (s *myWindow) updatePwd() {
 
 	pwd1 := widgets.NewQLabel2(T("Old Password:"), dlg, core.Qt__Widget)
 
-	grid.AddWidget(pwd1, 0, 0, 0)
+	grid.AddWidget2(pwd1, 0, 0, 0)
 
 	pwdInput1 := widgets.NewQLineEdit(dlg)
 	pwdInput1.SetEchoMode(widgets.QLineEdit__Password)
 	pwdInput1.SetPlaceholderText(T("Length Must >= 4"))
-	grid.AddWidget(pwdInput1, 0, 1, 0)
+	grid.AddWidget2(pwdInput1, 0, 1, 0)
 
 	pwd2 := widgets.NewQLabel2(T("New Password:"), dlg, core.Qt__Widget)
 
-	grid.AddWidget(pwd2, 1, 0, 0)
+	grid.AddWidget2(pwd2, 1, 0, 0)
 
 	pwdInput2 := widgets.NewQLineEdit(dlg)
 	pwdInput2.SetEchoMode(widgets.QLineEdit__Password)
 	pwdInput2.SetPlaceholderText(T("Length Must >= 4"))
-	grid.AddWidget(pwdInput2, 1, 1, 0)
+	grid.AddWidget2(pwdInput2, 1, 1, 0)
 
 	pwd3 := widgets.NewQLabel2(T("Confirm Password:"), dlg, core.Qt__Widget)
 
-	grid.AddWidget(pwd3, 2, 0, 0)
+	grid.AddWidget2(pwd3, 2, 0, 0)
 
 	pwdInput3 := widgets.NewQLineEdit(dlg)
 	pwdInput3.SetEchoMode(widgets.QLineEdit__Password)
 	pwdInput3.SetPlaceholderText(T("Length Must >= 4"))
-	grid.AddWidget(pwdInput3, 2, 1, 0)
+	grid.AddWidget2(pwdInput3, 2, 1, 0)
 
 	okAct := widgets.NewQPushButton2(T("OK"), dlg)
-	grid.AddWidget(okAct, 3, 0, 0)
+	grid.AddWidget2(okAct, 3, 0, 0)
 	cancelAct := widgets.NewQPushButton2(T("Cancel"), dlg)
-	grid.AddWidget(cancelAct, 3, 1, 0)
+	grid.AddWidget2(cancelAct, 3, 1, 0)
 
 	okAct.ConnectClicked(func(checked bool) {
 		ret := widgets.QMessageBox_Question(dlg, T("Confirm"), T("Are you sure?"), widgets.QMessageBox__Yes|widgets.QMessageBox__Cancel, widgets.QMessageBox__Yes)
@@ -1593,7 +1593,7 @@ func (s *myWindow) login() {
 	grid := widgets.NewQGridLayout(dlg)
 
 	name := widgets.NewQLabel2(T("Name:"), dlg, core.Qt__Widget)
-	grid.AddWidget(name, 0, 0, 0)
+	grid.AddWidget2(name, 0, 0, 0)
 
 	nameInput := widgets.NewQComboBox(dlg)
 	nameInput.SetEditable(true)
@@ -1601,11 +1601,11 @@ func (s *myWindow) login() {
 	nameInput.AddItems(s.getUsers())
 	nameInput.SetCurrentText(s.lastUser())
 
-	grid.AddWidget(nameInput, 0, 1, 0)
+	grid.AddWidget2(nameInput, 0, 1, 0)
 
 	pwd := widgets.NewQLabel2(T("Password:"), dlg, core.Qt__Widget)
 
-	grid.AddWidget(pwd, 1, 0, 0)
+	grid.AddWidget2(pwd, 1, 0, 0)
 
 	pwdInput := widgets.NewQLineEdit(dlg)
 	pwdInput.SetEchoMode(widgets.QLineEdit__Password)
@@ -1613,19 +1613,19 @@ func (s *myWindow) login() {
 	if len(nameInput.CurrentText()) > 0 {
 		pwdInput.SetFocus2()
 	}
-	grid.AddWidget(pwdInput, 1, 1, 0)
+	grid.AddWidget2(pwdInput, 1, 1, 0)
 
 	btb := widgets.NewQGridLayout(nil)
 
 	okBtn := widgets.NewQPushButton2(T("OK"), dlg)
-	btb.AddWidget(okBtn, 0, 0, 0)
+	btb.AddWidget2(okBtn, 0, 0, 0)
 
 	regBtn := widgets.NewQPushButton2(T("Register"), dlg)
 	regBtn.SetToolTip(T("Please input the name and password to register before you click this button!"))
-	btb.AddWidget(regBtn, 0, 1, 0)
+	btb.AddWidget2(regBtn, 0, 1, 0)
 
 	cancelBtn := widgets.NewQPushButton2(T("Cancel"), dlg)
-	btb.AddWidget(cancelBtn, 0, 2, 0)
+	btb.AddWidget2(cancelBtn, 0, 2, 0)
 
 	grid.AddLayout2(btb, 2, 0, 1, 2, 0)
 
@@ -1734,18 +1734,18 @@ func (s *myWindow) exportEncryptedDiary() {
 	grid := widgets.NewQGridLayout2()
 
 	name := widgets.NewQLabel2(T("FileName:"), dlg, core.Qt__Widget)
-	grid.AddWidget(name, 0, 0, 0)
+	grid.AddWidget2(name, 0, 0, 0)
 
 	nameInput := widgets.NewQLineEdit(dlg)
-	grid.AddWidget(nameInput, 0, 1, 0)
+	grid.AddWidget2(nameInput, 0, 1, 0)
 	nameInput.SetPlaceholderText(T("Double click to select..."))
 	nameInput.SetMinimumWidth(240)
 
 	passwd := widgets.NewQLabel2(T("Password:"), dlg, core.Qt__Widget)
-	grid.AddWidget(passwd, 1, 0, 0)
+	grid.AddWidget2(passwd, 1, 0, 0)
 
 	passwdInput := widgets.NewQLineEdit(dlg)
-	grid.AddWidget(passwdInput, 1, 1, 0)
+	grid.AddWidget2(passwdInput, 1, 1, 0)
 	passwdInput.SetEchoMode(widgets.QLineEdit__Password)
 	passwdInput.SetPlaceholderText(T("Length Must >= 4"))
 
@@ -1808,18 +1808,18 @@ func (s *myWindow) importEncryptedDiary() {
 	grid := widgets.NewQGridLayout2()
 
 	name := widgets.NewQLabel2(T("FileName:"), dlg, core.Qt__Widget)
-	grid.AddWidget(name, 0, 0, 0)
+	grid.AddWidget2(name, 0, 0, 0)
 
 	nameInput := widgets.NewQLineEdit(dlg)
-	grid.AddWidget(nameInput, 0, 1, 0)
+	grid.AddWidget2(nameInput, 0, 1, 0)
 	nameInput.SetPlaceholderText(T("Double click to select..."))
 	nameInput.SetMinimumWidth(240)
 
 	passwd := widgets.NewQLabel2(T("Password:"), dlg, core.Qt__Widget)
-	grid.AddWidget(passwd, 1, 0, 0)
+	grid.AddWidget2(passwd, 1, 0, 0)
 
 	passwdInput := widgets.NewQLineEdit(dlg)
-	grid.AddWidget(passwdInput, 1, 1, 0)
+	grid.AddWidget2(passwdInput, 1, 1, 0)
 	passwdInput.SetEchoMode(widgets.QLineEdit__Password)
 
 	hbox := widgets.NewQHBoxLayout()
@@ -1932,13 +1932,13 @@ func (s *myWindow) showPay() {
 	height := 512
 
 	labelAli := widgets.NewQLabel(dlg, core.Qt__Widget)
-	img1 := gui.NewQPixmap5(":/qml/pay/alipay.png", "png", core.Qt__NoFormatConversion)
+	img1 := gui.NewQPixmap3(":/qml/pay/alipay.png", "png", core.Qt__NoFormatConversion)
 	img1 = img1.ScaledToHeight(height, core.Qt__SmoothTransformation)
 	labelAli.SetPixmap(img1)
 	box.AddWidget(labelAli, 1, 0)
 
 	labelWx := widgets.NewQLabel(dlg, core.Qt__Widget)
-	img2 := gui.NewQPixmap5(":/qml/pay/wxpay.png", "png", core.Qt__NoFormatConversion)
+	img2 := gui.NewQPixmap3(":/qml/pay/wxpay.png", "png", core.Qt__NoFormatConversion)
 	img2 = img2.ScaledToHeight(height, core.Qt__SmoothTransformation)
 	labelWx.SetPixmap(img2)
 	box.AddWidget(labelWx, 1, 0)

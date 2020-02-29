@@ -238,7 +238,7 @@ func (s *myWindow) scaleImage(src *gui.QImage) (res *gui.QImage) {
 	grid := widgets.NewQGridLayout(dlg)
 
 	width := widgets.NewQLabel2(fmt.Sprintf("%s : %d =>", T("Width"), src.Width()), dlg, core.Qt__Widget)
-	grid.AddWidget(width, 0, 0, 0)
+	grid.AddWidget2(width, 0, 0, 0)
 	scaledW := src.Width()
 	scaledH := src.Height()
 	delta := 30
@@ -254,24 +254,24 @@ func (s *myWindow) scaleImage(src *gui.QImage) (res *gui.QImage) {
 	widthInput := widgets.NewQLineEdit(dlg)
 	widthInput.SetText(strconv.Itoa(scaledW))
 	widthInput.SetValidator(wValidor)
-	grid.AddWidget(widthInput, 0, 1, 0)
+	grid.AddWidget2(widthInput, 0, 1, 0)
 
 	height := widgets.NewQLabel2(fmt.Sprintf("%s : %d =>", T("Height"), src.Height()), dlg, core.Qt__Widget)
 
-	grid.AddWidget(height, 1, 0, 0)
+	grid.AddWidget2(height, 1, 0, 0)
 
 	heightInput := widgets.NewQLineEdit(dlg)
 	heightInput.SetText(strconv.Itoa(scaledH))
 	heightInput.SetValidator(hValidor)
-	grid.AddWidget(heightInput, 1, 1, 0)
+	grid.AddWidget2(heightInput, 1, 1, 0)
 
 	btb := widgets.NewQGridLayout(nil)
 
 	okBtn := widgets.NewQPushButton2(T("OK"), dlg)
-	btb.AddWidget(okBtn, 0, 0, 0)
+	btb.AddWidget2(okBtn, 0, 0, 0)
 
 	cancelBtn := widgets.NewQPushButton2(T("Cancel"), dlg)
-	btb.AddWidget(cancelBtn, 0, 1, 0)
+	btb.AddWidget2(cancelBtn, 0, 1, 0)
 
 	grid.AddLayout2(btb, 2, 0, 1, 2, 0)
 
@@ -362,29 +362,29 @@ func (s *myWindow) insertTable() {
 	grid := widgets.NewQGridLayout(dlg)
 
 	row := widgets.NewQLabel2(T("Rows:"), dlg, core.Qt__Widget)
-	grid.AddWidget(row, 0, 0, 0)
+	grid.AddWidget2(row, 0, 0, 0)
 
 	rowInput := widgets.NewQLineEdit(dlg)
 	rowInput.SetText("3")
 	rowInput.SetValidator(gui.NewQIntValidator(dlg))
-	grid.AddWidget(rowInput, 0, 1, 0)
+	grid.AddWidget2(rowInput, 0, 1, 0)
 
 	col := widgets.NewQLabel2(T("Columns:"), dlg, core.Qt__Widget)
 
-	grid.AddWidget(col, 1, 0, 0)
+	grid.AddWidget2(col, 1, 0, 0)
 
 	colInput := widgets.NewQLineEdit(dlg)
 	colInput.SetText("3")
 	colInput.SetValidator(gui.NewQIntValidator(dlg))
-	grid.AddWidget(colInput, 1, 1, 0)
+	grid.AddWidget2(colInput, 1, 1, 0)
 
 	btb := widgets.NewQGridLayout(nil)
 
 	okBtn := widgets.NewQPushButton2(T("OK"), dlg)
-	btb.AddWidget(okBtn, 0, 0, 0)
+	btb.AddWidget2(okBtn, 0, 0, 0)
 
 	cancelBtn := widgets.NewQPushButton2(T("Cancel"), dlg)
-	btb.AddWidget(cancelBtn, 0, 1, 0)
+	btb.AddWidget2(cancelBtn, 0, 1, 0)
 
 	grid.AddLayout2(btb, 2, 0, 1, 2, 0)
 
@@ -557,7 +557,7 @@ func (s *myWindow) OpenNewWindow(parent *myWindow, id int) {
 
 	grid.AddWidget3(editor, 0, 0, 1, 1, 0)
 
-	grid.SetAlign(core.Qt__AlignTop)
+	//grid.SetAlign(core.Qt__AlignTop)
 
 	s.setToolBar()
 
@@ -719,10 +719,10 @@ func (s *myWindow) findText() {
 	s.searchInput.SetText(cursor.Selection().ToPlainText())
 
 	backBtn := widgets.NewQPushButton2(T("Last"), dlg)
-	grid.AddWidget(backBtn, 1, 0, 0)
+	grid.AddWidget2(backBtn, 1, 0, 0)
 
 	nextBtn := widgets.NewQPushButton2(T("Next"), dlg)
-	grid.AddWidget(nextBtn, 1, 1, 0)
+	grid.AddWidget2(nextBtn, 1, 1, 0)
 
 	dlg.SetLayout(grid)
 
@@ -788,13 +788,13 @@ func (s *myWindow) replaceText() {
 	grid.AddWidget3(wordNew, 1, 0, 1, 3, 0)
 
 	backBtn := widgets.NewQPushButton2(T("Last"), dlg)
-	grid.AddWidget(backBtn, 2, 0, 0)
+	grid.AddWidget2(backBtn, 2, 0, 0)
 
 	nextBtn := widgets.NewQPushButton2(T("Next"), dlg)
-	grid.AddWidget(nextBtn, 2, 1, 0)
+	grid.AddWidget2(nextBtn, 2, 1, 0)
 
 	allBtn := widgets.NewQPushButton2(T("All"), dlg)
-	grid.AddWidget(allBtn, 2, 2, 0)
+	grid.AddWidget2(allBtn, 2, 2, 0)
 
 	dlg.SetLayout(grid)
 
