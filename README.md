@@ -9,10 +9,10 @@
 支持语言：中文、英语
 
 ### 编译环境
-- go1.12
-- therecipe/qt + qt5.12
+- go1.14
+- therecipe/qt + qt5.14.1
 
-**Incompatible qt5.13**
+**不兼容(Incompatible) qt5.12 , API有变化**
 
 最新的`therecipe/qt`使用了`qt5.13`，和本软件不兼容，必须改用`qt5.12`。
 
