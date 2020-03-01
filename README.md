@@ -12,7 +12,7 @@
 - go1.14
 - therecipe/qt + qt5.14.1
 
-**因新版本QT5.14的API有变化,修改了代码，不再兼容(Incompatible) qt5.12**
+**因新版本QT5.14的API有变化,修改了代码，从`v1.2.12`版不再兼容(Incompatible) qt5.12**
 
 ### 百度下载
 链接: https://pan.baidu.com/s/14Ltsh1WiuKhHgMA7KgA-dw 提取码: stdc
