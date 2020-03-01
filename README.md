@@ -14,8 +14,6 @@
 
 **因新版本QT5.14的API有变化,修改了代码，不再兼容(Incompatible) qt5.12**
 
-最新的`therecipe/qt`使用了`qt5.13`，和本软件不兼容，必须改用`qt5.12`。
-
 ### 百度下载
 链接: https://pan.baidu.com/s/14Ltsh1WiuKhHgMA7KgA-dw 提取码: stdc
 
