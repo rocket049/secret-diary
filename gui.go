@@ -637,7 +637,7 @@ func (s *myWindow) Create(app *widgets.QApplication) {
 	app.SetActiveWindow(s.window)
 	app.SetApplicationDisplayName(T("Secret Diary"))
 	app.SetApplicationName("sdiary")
-	app.SetApplicationVersion("1.0.1")
+	app.SetApplicationVersion(version)
 
 	s.setEditorFuncs()
 	s.setTreeFuncs()
