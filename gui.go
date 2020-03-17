@@ -1204,7 +1204,7 @@ func (s *myWindow) setTitle(v string) {
 
 	s.editor.SetFontPointSize(18)
 
-	//s.editor.SetAlignment(core.Qt__AlignHCenter)
+	s.editor.SetAlignment(core.Qt__AlignCenter)
 
 	cursor := s.editor.TextCursor()
 	cursor.SetCharFormat(cfmt)
@@ -1330,21 +1330,6 @@ func (s *myWindow) setEditorFuncs() {
 			s.editor.KeyPressEventDefault(e)
 		}
 	})
-
-	// s.editor.ConnectInsertPlainText(func(txt string) {
-	// 	if bfmt == nil || cfmt == nil {
-	// 		return
-	// 	}
-	// 	cursor := s.editor.TextCursor()
-	// 	if !cursor.HasSelection() {
-	// 		cursor.Select(gui.QTextCursor__LineUnderCursor)
-	// 		cursor.SetBlockFormat(bfmt)
-	// 		cursor.SetCharFormat(cfmt)
-	// 	}
-
-	// 	bfmt = nil
-	// 	cfmt = nil
-	// })
 }
 
 func (s *myWindow) OnTextChanged() {
