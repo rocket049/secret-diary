@@ -1218,7 +1218,7 @@ func (s *myWindow) setTitle(v string) {
 	afmt.SetFont2(s.app.Font())
 	afmt.SetFontPointSize(14)
 
-	//s.editor.SetAlignment(core.Qt__AlignLeft | core.Qt__AlignAbsolute)
+	s.editor.SetAlignment(core.Qt__AlignLeft | core.Qt__AlignAbsolute)
 
 	cursor.InsertText("\n\t")
 	s.mergeFormatOnLineOrSelection(afmt)
