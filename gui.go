@@ -682,7 +682,7 @@ func (s *myWindow) createLeftArea(charW int) widgets.QWidget_ITF {
 	spliter.AddWidget(s.tree)
 
 	search := widgets.NewQWidget(nil, core.Qt__Widget)
-	grid := widgets.NewQGridLayout(search)
+	grid := newGridLayout(search)
 	keyword := widgets.NewQLineEdit(search)
 	grid.AddWidget2(keyword, 0, 0, 0)
 
@@ -721,7 +721,7 @@ func (s *myWindow) createEditor(charW int) widgets.QWidget_ITF {
 	scrollarea.SetAlignment(core.Qt__AlignCenter)
 	scrollarea.SetSizePolicy2(widgets.QSizePolicy__Expanding, widgets.QSizePolicy__Expanding)
 	frame := widgets.NewQFrame(s.window, core.Qt__Widget)
-	grid := widgets.NewQGridLayout2()
+	grid := newGridLayout(frame)
 	s.editor = widgets.NewQTextEdit(s.window)
 	s.editor.SetSizePolicy2(widgets.QSizePolicy__Fixed, widgets.QSizePolicy__Expanding)
 	s.editor.SetTabChangesFocus(false)
@@ -1434,7 +1434,7 @@ func (s *myWindow) rename() {
 	dlg := widgets.NewQDialog(s.window, core.Qt__Dialog)
 	dlg.SetWindowTitle(T("Rename"))
 
-	grid := widgets.NewQGridLayout(dlg)
+	grid := newGridLayout(dlg)
 
 	name := widgets.NewQLabel2(T("New Name:"), dlg, core.Qt__Widget)
 	grid.AddWidget2(name, 0, 0, 0)
@@ -1482,7 +1482,7 @@ func (s *myWindow) updatePwd() {
 	dlg := widgets.NewQDialog(s.window, core.Qt__Dialog)
 	dlg.SetWindowTitle(T("Modify Password"))
 
-	grid := widgets.NewQGridLayout(dlg)
+	grid := newGridLayout(dlg)
 
 	pwd1 := widgets.NewQLabel2(T("Old Password:"), dlg, core.Qt__Widget)
 
@@ -1572,7 +1572,7 @@ func (s *myWindow) login() {
 	dlg := widgets.NewQDialog(s.window, core.Qt__Dialog)
 	dlg.SetWindowTitle(T("Login"))
 
-	grid := widgets.NewQGridLayout(dlg)
+	grid := newGridLayout(dlg)
 
 	name := widgets.NewQLabel2(T("Name:"), dlg, core.Qt__Widget)
 	grid.AddWidget2(name, 0, 0, 0)
@@ -1597,7 +1597,7 @@ func (s *myWindow) login() {
 	}
 	grid.AddWidget2(pwdInput, 1, 1, 0)
 
-	btb := widgets.NewQGridLayout(nil)
+	btb := newGridLayout2()
 
 	okBtn := widgets.NewQPushButton2(T("OK"), dlg)
 	btb.AddWidget2(okBtn, 0, 0, 0)
@@ -1713,7 +1713,7 @@ func (s *myWindow) exportEncryptedDiary() {
 	dlg := widgets.NewQDialog(s.window, core.Qt__Dialog)
 	dlg.SetWindowTitle(T("Export Encrypted Diary") + "...")
 
-	grid := widgets.NewQGridLayout2()
+	grid := newGridLayout2()
 
 	name := widgets.NewQLabel2(T("FileName:"), dlg, core.Qt__Widget)
 	grid.AddWidget2(name, 0, 0, 0)
@@ -1787,7 +1787,7 @@ func (s *myWindow) importEncryptedDiary() {
 	dlg := widgets.NewQDialog(s.window, core.Qt__Dialog)
 	dlg.SetWindowTitle(T("Import Encrypted Diary") + "...")
 
-	grid := widgets.NewQGridLayout2()
+	grid := newGridLayout2()
 
 	name := widgets.NewQLabel2(T("FileName:"), dlg, core.Qt__Widget)
 	grid.AddWidget2(name, 0, 0, 0)

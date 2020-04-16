@@ -235,7 +235,7 @@ func (s *myWindow) scaleImage(src *gui.QImage) (res *gui.QImage) {
 	dlg := widgets.NewQDialog(s.window, core.Qt__Dialog)
 	dlg.SetWindowTitle(T("Scale Image Size"))
 
-	grid := widgets.NewQGridLayout(dlg)
+	grid := newGridLayout(dlg)
 
 	width := widgets.NewQLabel2(fmt.Sprintf("%s : %d =>", T("Width"), src.Width()), dlg, core.Qt__Widget)
 	grid.AddWidget2(width, 0, 0, 0)
@@ -265,7 +265,7 @@ func (s *myWindow) scaleImage(src *gui.QImage) (res *gui.QImage) {
 	heightInput.SetValidator(hValidor)
 	grid.AddWidget2(heightInput, 1, 1, 0)
 
-	btb := widgets.NewQGridLayout(nil)
+	btb := newGridLayout2()
 
 	okBtn := widgets.NewQPushButton2(T("OK"), dlg)
 	btb.AddWidget2(okBtn, 0, 0, 0)
@@ -359,7 +359,7 @@ func (s *myWindow) insertTable() {
 	dlg.SetWindowTitle(T("Table Rows and Columns"))
 	dlg.SetFixedWidth(s.charWidth() * 13)
 
-	grid := widgets.NewQGridLayout(dlg)
+	grid := newGridLayout(dlg)
 
 	row := widgets.NewQLabel2(T("Rows:"), dlg, core.Qt__Widget)
 	grid.AddWidget2(row, 0, 0, 0)
@@ -378,7 +378,7 @@ func (s *myWindow) insertTable() {
 	colInput.SetValidator(gui.NewQIntValidator(dlg))
 	grid.AddWidget2(colInput, 1, 1, 0)
 
-	btb := widgets.NewQGridLayout(nil)
+	btb := newGridLayout2()
 
 	okBtn := widgets.NewQPushButton2(T("OK"), dlg)
 	btb.AddWidget2(okBtn, 0, 0, 0)
@@ -545,7 +545,7 @@ func (s *myWindow) OpenNewWindow(parent *myWindow, id int) {
 	s.window.SetMinimumSize2(800, 600)
 	s.window.SetWindowIcon(gui.NewQIcon5(":/qml/icons/Sd.png"))
 
-	grid := widgets.NewQGridLayout2()
+	grid := newGridLayout2()
 
 	frame := widgets.NewQFrame(s.window, core.Qt__Widget)
 
@@ -709,7 +709,7 @@ func (s *myWindow) findText() {
 
 	dlg.SetWindowTitle(T("Text Search"))
 
-	grid := widgets.NewQGridLayout(dlg)
+	grid := newGridLayout(dlg)
 
 	word := widgets.NewQLineEdit(dlg)
 	word.SetPlaceholderText(T("Words to search."))
@@ -772,7 +772,7 @@ func (s *myWindow) replaceText() {
 
 	dlg.SetWindowTitle(T("Text Replace"))
 
-	grid := widgets.NewQGridLayout(dlg)
+	grid := newGridLayout(dlg)
 
 	wordOld := widgets.NewQLineEdit(dlg)
 	wordOld.SetPlaceholderText(T("Old Text."))
