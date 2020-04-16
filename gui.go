@@ -1914,13 +1914,13 @@ func (s *myWindow) showPay() {
 	height := 512
 
 	labelAli := widgets.NewQLabel(dlg, core.Qt__Widget)
-	img1 := gui.NewQPixmap3(":/qml/pay/alipay.png", "png", core.Qt__NoFormatConversion)
+	img1 := newQPixMap(":/qml/pay/alipay.png", "png", core.Qt__NoFormatConversion)
 	img1 = img1.ScaledToHeight(height, core.Qt__SmoothTransformation)
 	labelAli.SetPixmap(img1)
 	box.AddWidget(labelAli, 1, 0)
 
 	labelWx := widgets.NewQLabel(dlg, core.Qt__Widget)
-	img2 := gui.NewQPixmap3(":/qml/pay/wxpay.png", "png", core.Qt__NoFormatConversion)
+	img2 := newQPixMap(":/qml/pay/wxpay.png", "png", core.Qt__NoFormatConversion)
 	img2 = img2.ScaledToHeight(height, core.Qt__SmoothTransformation)
 	labelWx.SetPixmap(img2)
 	box.AddWidget(labelWx, 1, 0)
