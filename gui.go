@@ -1158,6 +1158,8 @@ func (s *myWindow) CollapseOrExpand(idx *core.QModelIndex) {
 
 }
 
+var expandTime = time.Now()
+
 func (s *myWindow) setTreeFuncs() {
 
 	s.tree.SetSelectionMode(widgets.QAbstractItemView__SingleSelection)
@@ -1174,15 +1176,24 @@ func (s *myWindow) setTreeFuncs() {
 		s.tree.SetCurrentIndex(idx)
 		switch e.Button() {
 		case core.Qt__LeftButton:
-			s.CollapseOrExpand(idx)
+			if time.Now().After(expandTime.Add(time.Millisecond * 500)) {
+				expandTime = time.Now()
+				s.CollapseOrExpand(idx)
+			}
+
 		case core.Qt__RightButton:
 			s.diaryPopup(idx, e)
 		}
 
 	})
 
-	s.tree.DisconnectExpand()
-	s.tree.DisconnectCollapse()
+	s.tree.ConnectExpanded(func(idx *core.QModelIndex) {
+		expandTime = time.Now()
+	})
+
+	s.tree.ConnectCollapsed(func(idx *core.QModelIndex) {
+		expandTime = time.Now()
+	})
 
 	s.tree.ConnectSelectionChanged(func(selected *core.QItemSelection, deselected *core.QItemSelection) {
 		idxes := selected.Indexes()
