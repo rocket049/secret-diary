@@ -484,13 +484,13 @@ func (s *myWindow) setToolBar() {
 
 	bar = widgets.NewQToolBar("Insert", nil)
 
-	addImage := bar.AddAction(T("Image"))
+	addImage := bar.AddAction(T("Insert Image"))
 	addImage.SetToolTip(T("Insert Image"))
 	addImage.ConnectTriggered(func(b bool) {
 		s.insertImage()
 	})
 
-	addTable := bar.AddAction(T("Table"))
+	addTable := bar.AddAction(T("Insert Table"))
 	addTable.SetToolTip(T("Insert Table"))
 	addTable.ConnectTriggered(func(b bool) {
 		s.insertTable()

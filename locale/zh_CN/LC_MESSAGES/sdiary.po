@@ -269,7 +269,7 @@ msgid "Export As..."
 msgstr "导出"
 
 msgid "Attach..."
-msgstr "附件"
+msgstr "插入附件"
 
 msgid "Remove"
 msgstr "删除"
