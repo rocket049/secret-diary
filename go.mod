@@ -1,4 +1,4 @@
-module github.com/therecipe/examples
+module https: //gitee.com/rocket049/secret-diary
 
 go 1.18
 
