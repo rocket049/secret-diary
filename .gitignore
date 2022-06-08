@@ -11,3 +11,4 @@ README.md
 2
 3
 *.syso
+/vendor
