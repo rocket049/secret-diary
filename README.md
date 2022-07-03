@@ -10,7 +10,7 @@
 
 ### 支持编译环境
 - go >= 1.10
-- therecipe/qt
+- github.com/therecipe/qt
 - qt >= 5.13
 - qt < 5.13，必须使用参数 `-tags before513`
 

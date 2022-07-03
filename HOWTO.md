@@ -13,7 +13,7 @@
 ### 二、下载本软件的源代码
 运行命令：`git clone https://gitee.com/rocket049/secret-diary.git`
 
-### 三、安装必须的共享库
+### 三、安装必须的共享库(来自 https://github.com/therecipe/qt)
 ```
 ubuntu/debian:
 sudo apt-get -y install build-essential libglu1-mesa-dev libpulse-dev libglib2.0-dev
