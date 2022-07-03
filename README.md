@@ -14,6 +14,9 @@
 - qt >= 5.13
 - qt < 5.13，必须使用参数 `-tags before513`
 
+### 具体编译和部署的方法
+[HOWTO](HOWTO.md)
+
 ### 百度下载
 链接: https://pan.baidu.com/s/14Ltsh1WiuKhHgMA7KgA-dw 提取码: stdc
 
