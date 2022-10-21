@@ -350,38 +350,43 @@ func (s *myWindow) setMenuBar() {
 
 func (s *myWindow) setToolBar() {
 	bar := widgets.NewQToolBar("File", nil)
-	s.newDiary = bar.AddAction(T("New"))
+	var icon *gui.QIcon
+
+	icon = gui.NewQIcon5(":/qml/icons/document-new.jpg")
+	s.newDiary = bar.AddAction2(icon, T("New"))
 	s.newDiary.ConnectTriggered(func(b bool) {
 		s.setStatusBar(T("New Diary"))
 		now := time.Now()
 		s.addDiary(now.Format("2006-01"), now.Format("02"), T("New Diary")+now.Format("2006-01-02"))
 	})
-
-	s.saveDiary = bar.AddAction(T("Save"))
+	icon = gui.NewQIcon5(":/qml/icons/document-save.jpg")
+	s.saveDiary = bar.AddAction2(icon, T("Save"))
 	s.saveDiary.SetToolTip(T("Save") + " Ctrl-S")
 	s.saveDiary.SetShortcut(gui.QKeySequence_FromString("CTRL+s", gui.QKeySequence__NativeText))
 
 	s.window.AddToolBar2(bar)
 
 	bar = widgets.NewQToolBar("Format", nil)
-
-	head1 := bar.AddAction("H1")
+	icon = gui.NewQIcon5(":/qml/icons/h1.png")
+	head1 := bar.AddAction2(icon, "H1")
 	head1.SetToolTip(T("Header 1"))
 	head1.ConnectTriggered(func(b bool) {
 		s.setHeader(1)
 	})
-	head2 := bar.AddAction("H2")
+	icon = gui.NewQIcon5(":/qml/icons/h2.png")
+	head2 := bar.AddAction2(icon, "H2")
 	head2.SetToolTip(T("Header 2"))
 	head2.ConnectTriggered(func(b bool) {
 		s.setHeader(2)
 	})
-	head3 := bar.AddAction("H3")
+	icon = gui.NewQIcon5(":/qml/icons/h3.png")
+	head3 := bar.AddAction2(icon, "H3")
 	head3.SetToolTip(T("Header 3"))
 	head3.ConnectTriggered(func(b bool) {
 		s.setHeader(3)
 	})
-
-	standard := bar.AddAction(T("Standard"))
+	icon = gui.NewQIcon5(":/qml/icons/std.png")
+	standard := bar.AddAction2(icon, T("Standard"))
 	standard.ConnectTriggered(func(b bool) {
 		var cfmt = gui.NewQTextCharFormat()
 		cfmt.SetFont2(s.app.Font())
@@ -390,7 +395,7 @@ func (s *myWindow) setToolBar() {
 		s.mergeFormatOnLineOrSelection(cfmt)
 	})
 
-	var icon *gui.QIcon
+	//var icon *gui.QIcon
 
 	icon = gui.NewQIcon5(":/qml/icons/B.png")
 	s.actionTextBold = bar.AddAction2(icon, T("Bold"))
