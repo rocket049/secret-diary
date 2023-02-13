@@ -32,6 +32,10 @@ Arch Linux:
 sudo pacman -S base-devel
 sudo pacman -S --needed qt5
 
+Deepin Linux:
+sudo apt-get -y install build-essential libglu1-mesa-dev libpulse-dev libglib2.0-dev
+sudo apt install qtbase5-dev
+
 ```
 
 ### 四、用go编译器编译软件
