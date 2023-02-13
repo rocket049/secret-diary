@@ -731,7 +731,7 @@ func (s *myWindow) createEditor(charW int) widgets.QWidget_ITF {
 	s.editor.SetSizePolicy2(widgets.QSizePolicy__Fixed, widgets.QSizePolicy__Expanding)
 	s.editor.SetTabChangesFocus(false)
 	s.editor.SetReadOnly(true)
-	s.editor.SetStyleSheet("QTextEdit{background-color:rgba(255,255,255,255);border:1px;}")
+	s.editor.SetStyleSheet("QTextEdit{background-color:rgba(255,255,255,255);border:1px;border-style:solid;border-color:#000000}")
 
 	width := charW * 30
 
