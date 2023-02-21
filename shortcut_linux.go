@@ -150,8 +150,9 @@ func appimageLauncher(force bool) error {
 }
 
 func makeShortcut(force bool) {
-	err := appimageLauncher(force)
-	if err != nil {
-		makeLauncher("Secret-Diary", "secret-diary", "Sd.png", force)
-	}
+	// err := appimageLauncher(force)
+	// if err != nil {
+	// 	makeLauncher("Secret-Diary", "secret-diary", "Sd.png", force)
+	// }
+	return
 }
