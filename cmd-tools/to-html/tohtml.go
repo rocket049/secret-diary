@@ -1,5 +1,8 @@
 package main
 
+// Run program in directory $HOME/.sdiary/$USERNAME/
+// It will generate index.html
+
 import (
 	"bytes"
 	"encoding/gob"
