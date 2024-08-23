@@ -115,14 +115,6 @@ func convertFile(name string, key []byte) error {
 			}
 
 		})
-		// nodes := htmlquery.Find(root, fmt.Sprintf("//img[@src='%v']", k))
-		// for i := range nodes {
-		// 	for j := range nodes[i].Attr {
-		// 		if nodes[i].Attr[j].Key == "src" {
-		// 			nodes[i].Attr[j].Val = fn
-		// 		}
-		// 	}
-		// }
 
 		//println(htmlImages)
 	}
