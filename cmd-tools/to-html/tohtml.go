@@ -12,7 +12,8 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"strings"
+
+	"github.com/PuerkitoBio/goquery"
 
 	_ "embed"
 )
@@ -91,25 +92,62 @@ func convertFile(name string, key []byte) error {
 	if err != nil {
 		return err
 	}
+
+	buf1 := bytes.NewBufferString(document.Html)
+
+	root, err := goquery.NewDocumentFromReader(buf1)
+	if err != nil {
+		return err
+	}
+
 	os.MkdirAll(name, os.ModePerm)
-	htmlImages := ""
+	//htmlImages := ""
 	for k, img := range document.Images {
 		fn := path.Base(k)
 		ioutil.WriteFile(filepath.Join(name, fn), img, 0644)
-		htmlImages = htmlImages + fmt.Sprintf("\n<p><img src='%v' /></p>", fn)
+		//htmlImages = htmlImages + fmt.Sprintf("\n<p><img src='%v' /></p>", fn)
+
+		root.Find("img").Each(func(i int, s *goquery.Selection) {
+			if v, ok := s.Attr("src"); ok {
+				if v == k {
+					s.SetAttr("src", fn)
+				}
+			}
+
+		})
+		// nodes := htmlquery.Find(root, fmt.Sprintf("//img[@src='%v']", k))
+		// for i := range nodes {
+		// 	for j := range nodes[i].Attr {
+		// 		if nodes[i].Attr[j].Key == "src" {
+		// 			nodes[i].Attr[j].Val = fn
+		// 		}
+		// 	}
+		// }
+
 		//println(htmlImages)
 	}
 
-	htmlAttach := ""
+	//htmlAttach := ""
 	for _, item := range document.Attachments {
 		ioutil.WriteFile(filepath.Join(name, item.Name), item.Data, 0644)
-		htmlAttach = htmlAttach + fmt.Sprintf("\n<p><a href='%v' />%v</a></p>", item.Name, item.Name)
+		//htmlAttach = htmlAttach + fmt.Sprintf("\n<p><a href='%v' />%v</a></p>", item.Name, item.Name)
 		//println(htmlAttach)
+
+		root.Find("body").Each(func(i int, s *goquery.Selection) {
+			s.AppendHtml(fmt.Sprintf("\n<p><a href='%v' />%v</a></p>", item.Name, item.Name))
+
+		})
+
 	}
 
-	pos := strings.Index(document.Html, "</body>")
+	//pos := strings.Index(document.Html, "</body>")
 
-	html := document.Html[:pos] + htmlImages + htmlAttach + document.Html[pos:]
+	//html := document.Html[:pos] + htmlImages + htmlAttach + document.Html[pos:]
+	html, err := root.Html()
+
+	if err != nil {
+		return err
+	}
 
 	ioutil.WriteFile(filepath.Join(name, name+".html"), []byte(html), 0644)
 	return err
