@@ -59,7 +59,7 @@ func (s *diaryPointer) zero() {
 	s.YearMonth = ""
 }
 
-//T wrap gettext.T
+// T wrap gettext.T
 func T(v string) string {
 	return gettext.T(v)
 }
@@ -651,7 +651,7 @@ func (s *myWindow) Create(app *widgets.QApplication) {
 	s.window.ConnectShowEvent(func(e *gui.QShowEvent) {
 		once.Do(func() {
 			go makeShortcut(false)
-			s.login()
+			//s.login()
 		})
 	})
 
@@ -665,6 +665,7 @@ func (s *myWindow) Create(app *widgets.QApplication) {
 
 		s.db.Close()
 	})
+	s.login()
 	s.window.ShowMaximized()
 }
 
@@ -1378,7 +1379,7 @@ func (s *myWindow) OnTextChanged() {
 
 }
 
-//return url or ""
+// return url or ""
 func (s *myWindow) getSelectedImage() (url string) {
 	cursor := s.editor.TextCursor()
 	if cursor == nil {
