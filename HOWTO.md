@@ -97,7 +97,7 @@ sudo ln -s /home/app/qt5 /home/app/qt5dir/5.15.16/gcc_64
 ```
 `gcc_64`就是指向`/home/app/qt5`的软链接，确保下一层就是`bin include lib plugins`等目录。
 
-***注意：***如果你使用fcitx或fcitx5输入法，记得复制下面两个输入法插件，否则编译出来的程序不能使用输入法：
+**注意：**如果你使用fcitx或fcitx5输入法，记得复制下面两个输入法插件，否则编译出来的程序不能使用输入法：
 ```
 sudo cp usr/lib/x86_64-linux-gnu/qt5/plugins/platforminputcontexts/libfcitx5platforminputcontextplugin.so /home/app/qt5/plugins/platforminputcontexts/
 sudo cp usr/lib/x86_64-linux-gnu/qt5/plugins/platforminputcontexts/libfcitxplatforminputcontextplugin.so /home/app/qt5/plugins/platforminputcontexts/
