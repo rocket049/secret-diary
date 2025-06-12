@@ -53,7 +53,7 @@ go mod vendor
 
 等待上面的命令运行结束，就可以得到编译好的程序，位置是:`deploy/linux/secret-diary`
 
-### 按上面的办法编译还是失败(Failed)？因为那都是过去式了，下面介绍一下在ubuntu24.04上该怎么编译本软件。
+## 按上面的办法编译还是失败(Failed)？因为那都是过去式了，下面介绍一下在ubuntu24.04上该怎么编译本软件。
 1、`go get -v -tags=no_env github.com/therecipe/qt/cmd/...`这条命令现在不能用了，怎么办？按下面的步骤编译他们：
 先执行下面的命令：
 ```
