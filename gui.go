@@ -666,7 +666,8 @@ func (s *myWindow) Create(app *widgets.QApplication) {
 		s.db.Close()
 	})
 	s.login()
-	s.window.ShowMaximized()
+
+	//s.window.Show()
 }
 
 func (s *myWindow) createLeftArea(charW int) widgets.QWidget_ITF {
@@ -1710,12 +1711,10 @@ func (s *myWindow) login() {
 		//log.Println("load list")
 		s.loadUserCategorys()
 		dlg.Destroy(true, true)
+		s.window.ShowMaximized()
 	})
 
-	dlg.Show()
-
-	dlg.Move2(0, 0)
-	dlg.Move2(s.window.X()+(s.window.Width()-dlg.Width())/2, s.window.Y()+(s.window.Height()-dlg.Width())/2)
+	dlg.ShowDefault()
 }
 
 func (s *myWindow) exportEncryptedDiary() {
