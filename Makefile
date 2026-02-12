@@ -1,4 +1,6 @@
 release:
-	env GO111MODULE=off qtdeploy build
+	go mod vendor
+	qtdeploy build
 dev:
-	env GO111MODULE=off go build
+	go mod vendor
+	go build

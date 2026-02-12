@@ -278,7 +278,7 @@ func (s *myDb) RemoveDiary(id string) error {
 }
 
 func (s *myDb) SearchTitle(kw string) ([]diaryItem, error) {
-	rows, err := s.db.Query("select id,cdate,title,mtime from diaries where instr(title,?)>0 and category=? order by cdate desc;", kw, s.category)
+	rows, err := s.db.Query("select id,cdate,title,mtime from diaries where instr(LOWER(title),LOWER(?))>0 and category=? order by cdate desc;", kw, s.category)
 	if err != nil {
 		return nil, err
 	}
