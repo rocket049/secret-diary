@@ -352,14 +352,14 @@ func (s *myWindow) setToolBar() {
 	bar := widgets.NewQToolBar("File", nil)
 	var icon *gui.QIcon
 
-	icon = gui.NewQIcon5(":/qml/icons/document-new.jpg")
+	icon = gui.NewQIcon5(":/qml/icons/document-new.png")
 	s.newDiary = bar.AddAction2(icon, T("New"))
 	s.newDiary.ConnectTriggered(func(b bool) {
 		s.setStatusBar(T("New Diary"))
 		now := time.Now()
 		s.addDiary(now.Format("2006-01"), now.Format("02"), T("New Diary")+now.Format("2006-01-02"))
 	})
-	icon = gui.NewQIcon5(":/qml/icons/document-save.jpg")
+	icon = gui.NewQIcon5(":/qml/icons/document-save.png")
 	s.saveDiary = bar.AddAction2(icon, T("Save"))
 	s.saveDiary.SetToolTip(T("Save") + " Ctrl-S")
 	s.saveDiary.SetShortcut(gui.QKeySequence_FromString("CTRL+s", gui.QKeySequence__NativeText))
